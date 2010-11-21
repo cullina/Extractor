@@ -15,9 +15,13 @@ import Data.List(foldl')
 
 -- Compute binomial coefficients
 
-choose n 0 = 1
-choose 0 k = 0
-choose n k = (choose (n-1) (k-1)) * n `div` k
+choose n k = if (2 * k > n)
+             then choose' n (n - k)
+             else choose' n k
+
+choose' n 0 = 1
+choose' 0 k = 0
+choose' n k = (choose' (n-1) (k-1)) * n `div` k
 
 
 chooseList n k = let (a,b) = chooseList' n k
@@ -44,12 +48,11 @@ subsetFromInteger' n 0 subset index = subset
 
 subsetFromInteger' n k subset index =
     let nCk = snd index
-        threshold = div (nCk * k) n
+        threshold = div (nCk * (n - k)) n
         (d, leftover) = decision index threshold
     in if d
-       then subsetFromInteger' (n - 1) k subset leftover
-       else subsetFromInteger' (n - 1) (k - 1) (n : subset) leftover 
- 
+       then subsetFromInteger' (n - 1) (k - 1) (n : subset) leftover 
+       else subsetFromInteger' (n - 1) k subset leftover
 
 subsetFromBitstream n k bs = 
     let max          = choose n k
@@ -66,12 +69,25 @@ subsetInc n k subset unif bs =
     let g  = gcd n k
         n' = div n g
         k' = div k g
-        (d, leftover, bs') = efficientDecision k' n' unif bs
+        (d, leftover, bs') = efficientDecision (n' - k') n' unif bs
     in if d
-       then subsetInc (n-1) k subset leftover bs'
-       else subsetInc (n-1) (k-1) (n : subset) leftover bs'
+       then subsetInc (n - 1) (k - 1) (n : subset) leftover bs'
+       else subsetInc (n - 1) k subset leftover bs'
         
         
+
+--
+
+subsetToIndex subset = subsetToIndex' (0, 1) 0 0 subset
+
+subsetToIndex' index n k [] = index
+
+subsetToIndex' (index, max) n k (x:xs) = 
+    if x == n + 1
+    then let diff = max * (n - k) `div` (k + 1)
+         in subsetToIndex' (index + diff, max + diff) (n + 1) (k + 1) xs
+    else subsetToIndex' (index, max * (n + 1) `div` (n - k + 1)) (n + 1) k (x:xs)
+
 
 
 
