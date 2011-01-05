@@ -58,24 +58,34 @@ popPush (m:ms) xs bs =
 mergeUniforms (a,b) (c,d) = (a * d + c, b * d)
 
 
+gcdPlus a b = 
+    let c = gcd a b
+        d = div a c
+        e = div b c
+    in (c, d, e)
 
+--use high order bits
 extractUseful max (a,b) = 
-    let c           = gcd b max
-        d           = div b c
-        (q, r)      = quotRem a d  
-        stillNeeded = div max c                 
-        useful      = (q, c)           --use high order bits
-        leftover    = (r, d)
-    in (stillNeeded, useful, leftover)
+    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
+        (q, r)                                  = quotRem a leftoverSize
+        useful                                  = (q, usefulSize)
+        leftover                                = (r, leftoverSize)
+    in (useful, stillNeeded, leftover)
 
 -- more uniform generation
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
 uniformFromRecycle max randInt bs = 
-    let (stillNeeded, useful, leftover) = extractUseful max randInt
+    let (useful, stillNeeded, leftover) = extractUseful max randInt
         (newInt, bs')                   = uniform stillNeeded bs
-        merged                          = mergeUniforms useful newInt 
+        merged                          = mergeUniforms newInt useful
     in (merged, leftover, bs')   
+
+uniformFromRecycle2 max (a, b) bs =
+    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
+        (newInt, bs')                           = uniform stillNeeded bs
+        merged                                  = mergeUniforms newInt (a, b)
+    in (merged, leftoverSize, bs')
 
 
 -- decision making
@@ -98,3 +108,8 @@ efficientDecision threshold max randInt bs =
         (d, leftover2)          = decision merged threshold
         leftover3               = mergeUniforms leftover2 leftover --preserve bit ordering
     in (d, leftover3, bs')
+
+efficientDecision2 threshold max randInt bs =
+    let (merged, leftover, bs') = uniformFromRecycle2 max randInt bs
+        (d, leftover2)          = decision merged (threshold * leftover)
+    in (d, leftover2, bs')
