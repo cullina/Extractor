@@ -12,18 +12,18 @@ doubleIf a b = if b
                else 2*a
 
 
-intToBits 0 bits = bits
-intToBits n bits = let (q,r) = quotRem n 2
-                   in intToBits q ((r == 1) : bits)
+intToBits bits 0 = bits
+intToBits bits n = let (q, r) = quotRem n 2
+                   in intToBits ((r == 1) : bits) q
 
 
-intWToBits 0 n = []
+intWToBits 0 bits n = bits
 
-intWToBits w n = let (q,r) = quotRem n 2
-                 in (r == 1) : intWToBits (w - 1) q
+intWToBits w bits n = let (q, r) = quotRem n 2
+                      in intWToBits (w - 1) ((r == 1) : bits) q
 
 
-maxInBits n = intToBits (n - 1) []
+maxInBits n = intToBits [] (n - 1)
 
 
 --bitstreams
@@ -34,7 +34,7 @@ getBit ([], n) = error ("Cannot getBit.  Bitstream is empty after " ++
 
 getBit ((b:bs), n) = (b, (bs, n+1))
 
-bitStream w = attachCounter . (concatMap (intWToBits w)) . intStream . mkStdGen
+bitStream w = attachCounter . (concatMap (intWToBits w [])) . intStream . mkStdGen
 
 attachCounter x = (x, 0)
 
