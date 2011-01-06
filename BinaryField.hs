@@ -45,6 +45,7 @@ toInt (Poly len pp) = bitsToInt $ expand len pp
 
 fromBits bits = Poly (length bits) bits
 
+fromInt len = fromBits . (intWToBits len [])
 
 zeroPoly len = Poly len []
 
@@ -73,16 +74,32 @@ allPowersOfX' charPoly n x =
 
 
 powerOfX charPoly n = 
-    powerOfX' charPoly (intToBits [] n) (onePoly (polyLen charPoly))
+    let square x = polyProduct charPoly x x
+        times    = timesX charPoly
+        bits     = intToBits [] n
+        one      = onePoly (polyLen charPoly)
+    in power square times bits one
 
-powerOfX' charPoly [] accum = accum
+powerOfY charPoly n y = 
+    let square x = polyProduct charPoly x x
+        times    = polyProduct charPoly y
+        bits     = intToBits [] n
+        one      = onePoly (polyLen charPoly)
+    in power square times bits one
 
-powerOfX' charPoly (b:bs) accum =
-    let accum2 = polyProduct charPoly accum accum 
+
+
+power square times [] accum = accum
+
+power square times (b:bs) accum =
+    let accum2 = square accum 
         accum3 = if b
-                 then timesX charPoly accum2
+                 then times accum2
                  else accum2
-    in powerOfX' charPoly bs accum3
+    in power square times bs accum3
+
+
+
 
 
 polySum (Poly la pa) (Poly lb pb) = 
@@ -121,10 +138,9 @@ polyRem' a@(Poly la pa) b@(Poly lb pb) =
 
 
 polyGCD a b = 
-    let r = polyRem a b
-    in if 0 == toInt r
-       then b
-       else polyGCD b r
+    if 0 == toInt b
+    then a
+    else polyGCD b $ polyRem a b
 
 
 embedPoly newLength (Poly length p) = 
