@@ -29,6 +29,18 @@ expand len pp =
     in p : expand (len - 1) ps
 
 
+prunePoly poly@(Poly l pp) =
+    prunePoly' l pp
+
+prunePoly' 0 pp = Poly 0 []
+
+prunePoly' l pp =
+    let (p, ps) = nextTerm pp
+    in if p
+       then Poly l pp
+       else prunePoly' (l - 1) ps
+
+
 toInt (Poly len pp) = bitsToInt $ expand len pp
 
 fromBits bits = Poly (length bits) bits
@@ -94,16 +106,27 @@ polyProduct' charPoly a (b:bs) accum =
         accum3 = if b
                  then polySum a accum2
                  else accum2
-    in polyProduct' charPoly a (len - 1) bs accum3
+    in polyProduct' charPoly a bs accum3
 
 
---polyQuotRem a@
+polyRem a b =
+    polyRem' (prunePoly a) (prunePoly b)
+   
 
---polyGCD 
+polyRem' a@(Poly la pa) b@(Poly lb pb) =
+    if lb > la
+    then a
+    else let aa = prunePoly $ polySum a $ Poly la pb
+         in polyRem' aa b
 
 
-resizePoly newLength (Poly _ p) =
-    Poly newLength (take newLength p)
+polyGCD a b = 
+    let r = polyRem a b
+    in if 0 == toInt r
+       then b
+       else polyGCD b r
+
 
 embedPoly newLength (Poly length p) = 
     Poly newLength (replicate (newLength - length) False ++ p)
+
