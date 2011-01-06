@@ -4,12 +4,36 @@ import Prime
 import BinaryField
 
 
+{- Check that x generates the whole multiplicative group by testing the order 
+   where it could produce 1 early. -}
+
 primitiveTest charPoly@(Poly len pp) =
     let n        = 2 ^ len - 1
         divisors = testDivisors n primes
         powers   = map (toInt . (powerOfX charPoly) . (quot n)) divisors
     in all ((/=) 1) powers
 
+
+{- Check that the polynomial contains no irreducible factors of degree less 
+   than len / 2.  Test that it is relatively prime to (x^2^i - x) for i from
+   1 to len / 2. -}
+
+irreducibleTest charPoly@(Poly len pp) =
+    let numIters     = quot len 2
+        x            = fromInt len 2
+        fullCharPoly = Poly (len + 1) (True : pp)
+    in irreducibleTest' fullCharPoly charPoly x x numIters 
+
+irreducibleTest' fullCharPoly charPoly x y 0 = True
+
+irreducibleTest' fullCharPoly charPoly x y i = 
+    let newY = polyProduct charPoly y y
+        test = polySum newY x
+        gcd  = polyGCD fullCharPoly test
+    in if toInt gcd == 1
+       then irreducibleTest' fullCharPoly charPoly x newY (i - 1) 
+       else False
+    
 
 
 t = True
