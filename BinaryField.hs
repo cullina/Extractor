@@ -47,6 +47,8 @@ fromBits bits = Poly (length bits) bits
 
 fromInt len = fromBits . (intWToBits len [])
 
+sparsePoly len = fromInt len . sum . map (2 ^) 
+
 zeroPoly len = Poly len []
 
 onePoly len = Poly len $ (replicate (len - 1) False) ++ [True]
