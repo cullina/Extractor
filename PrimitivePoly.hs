@@ -5,25 +5,26 @@ import BinaryField
 import SubsetSelection
 
 
-{- Check that x generates the whole multiplicative group by testing the order 
-   where it could produce 1 early. -}
+-- Check that x generates the whole multiplicative group by testing the order 
+-- where it could produce 1 early.
 
 primitiveTest charPoly@(Poly len pp) =
     let divisors = divisorsOfPowerOf2 len
         powers   = map (toInt . powerOfX charPoly) divisors
     in all ((/=) 1) powers
 
+-- special case some small Mersenne primes, factorize everything else
 
 divisorsOfPowerOf2 k =
     let n        = 2 ^ k - 1
-    in if or $ map (k ==) [31,61,89,107,127]
+    in if or $ map (k ==) [31,61,89,107,127,521,607]
        then [1]
        else map (quot n . fst) (factorize n)
 
 
-{- Check that the polynomial contains no irreducible factors of degree less 
-   than len / 2.  Test that it is relatively prime to (x^2^i - x) for i from
-   1 to len / 2. -}
+-- Check that the polynomial contains no irreducible factors of degree less 
+-- than len / 2.  Test that it is relatively prime to (x^2^i - x) for i from
+-- 1 to len / 2.
 
 irreducibleTest charPoly@(Poly len pp) =
     let numIters     = quot len 2
@@ -43,7 +44,7 @@ irreducibleTest' fullCharPoly charPoly x y i =
     
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
---list ranges from [0 , max) 
+-- list ranges from [0 , max) 
 
 splitInHalf list =
     let (q, r) = quotRem (length list) 2
