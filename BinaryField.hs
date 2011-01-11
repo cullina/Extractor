@@ -8,8 +8,8 @@ data Poly = Poly {
     }
 
 instance Show Poly where
-    show (Poly len pp) =
-        map showBool (expand len pp)
+    show p@(Poly len pp) =
+        show (len, toInt p, map showBool (expand len pp))
 
 
 showBool b = if b then 'X' else '_'
