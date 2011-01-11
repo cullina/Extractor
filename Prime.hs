@@ -1,6 +1,5 @@
 module Prime 
     ( primes 
-    , testDivisors
     , factorize
     ) where
 
@@ -10,31 +9,27 @@ primes = 2 : oddPrimes
 oddPrimes = 3 : primeGen 5
 
 primeGen q = 
-    if null $ testDivisors q oddPrimes
+    if (q ==) . fst . head $ factorize' q oddPrimes
     then q : primeGen (q + 2)
     else primeGen (q + 2)
-
-
-testDivisors n [] = []
- 
-testDivisors n (p:ps) = 
-    let (q, r) = quotRem n p
-    in if r == 0
-       then p : testDivisors n ps
-       else if q > p
-            then testDivisors n ps
-            else []
 
 
 factorize n = factorize' n primes
 
 factorize' 1 _ = []
 
-factorize' n pp@(p:ps) = 
-    let (q, r) = quotRem n p
-    in if r == 0
-       then p : factorize' q pp
-       else if q > p
-            then factorize' n ps
-            else [n]
+factorize' n [] = [(n, 1)]
+
+factorize' n (p:ps) = 
+    let (q, k, done) = divideOut n p 0
+        rest = if done then [] else ps
+    in if k > 0
+       then (p, k) : factorize' q rest
+       else factorize' q rest
             
+
+divideOut n p k =
+    let (q, r) = quotRem n p
+        in if r == 0
+           then divideOut q p (k + 1)
+           else (n, k, p > q)
