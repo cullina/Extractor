@@ -17,6 +17,8 @@ intToBits bits n = let (q, r) = quotRem n 2
                    in intToBits ((r == 1) : bits) q
 
 
+intWToBits :: (Integral a, Integral b) => a -> [Bool] -> b -> [Bool]
+
 intWToBits 0 bits n = bits
 
 intWToBits w bits n = let (q, r) = quotRem n 2
