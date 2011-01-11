@@ -51,7 +51,7 @@ subsetFromInteger' n k subset index =
         threshold = div (nCk * (n - k)) n
         (d, leftover) = decision index threshold
     in if d
-       then subsetFromInteger' (n - 1) (k - 1) (n : subset) leftover 
+       then subsetFromInteger' (n - 1) (k - 1) ((n - 1) : subset) leftover 
        else subsetFromInteger' (n - 1) k subset leftover
 
 subsetFromBitstream n k bs = 
@@ -71,7 +71,7 @@ subsetInc n k subset unif bs =
         k' = div k g
         (d, leftover, bs') = efficientDecision (n' - k') n' unif bs
     in if d
-       then subsetInc (n - 1) (k - 1) (n : subset) leftover bs'
+       then subsetInc (n - 1) (k - 1) ((n - 1) : subset) leftover bs'
        else subsetInc (n - 1) k subset leftover bs'
         
         
@@ -83,7 +83,7 @@ subsetToIndex subset = subsetToIndex' (0, 1) 0 0 subset
 subsetToIndex' index n k [] = index
 
 subsetToIndex' (index, max) n k (x:xs) = 
-    if x == n + 1
+    if x == n
     then let diff = max * (n - k) `div` (k + 1)
          in subsetToIndex' (index + diff, max + diff) (n + 1) (k + 1) xs
     else subsetToIndex' (index, max * (n + 1) `div` (n - k + 1)) (n + 1) k (x:xs)
