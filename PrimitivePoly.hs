@@ -56,25 +56,20 @@ splitInHalf list =
 testBalance max list = 
     let (a, b, c) = splitInHalf list
         folded    = map (2 *) b ++ zipWith (+) (reverse a) c
-    in checkSum (max - 1) folded
+    in folded <= repeat (max - 1)
 
-checkSum s [] = True
-
-checkSum s (a:as)
-    | a < s     = True
-    | a > s     = False
-    | otherwise = checkSum s as
 
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
 smallHalf n k =
     filter (testBalance n) $ map (subsetFromInteger n k) $ [0 .. (choose n k - 1)]
 
-oddWeightPolys len = concatMap (kWeightPoly len) [1, 3 .. len - 1] 
-
 
 kWeightPoly len k = 
     map (sparsePoly len . (0 :) . (map (1 +))) (smallHalf (len - 1) k)
+
+
+oddWeightPolys len = concatMap (kWeightPoly len) [1, 3 .. len - 1] 
 
 
 getCharPoly = head . filter primitiveTest . filter irreducibleTest . oddWeightPolys
