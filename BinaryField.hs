@@ -18,27 +18,24 @@ xor True = not
 xor False = id
 
 
-nextTerm (p:ps) = (p, ps)
-nextTerm [] = (False, [])
+expand 0 _ = []
 
+expand len [] = replicate len False
 
-expand 0 pp = []
-
-expand len pp =
-    let (p, ps) = nextTerm pp
-    in p : expand (len - 1) ps
+expand len (p:ps) = p : expand (len - 1) ps
 
 
 prunePoly poly@(Poly l pp) =
     prunePoly' l pp
 
-prunePoly' 0 pp = Poly 0 []
+prunePoly' 0 _  = Poly 0 []
 
-prunePoly' l pp =
-    let (p, ps) = nextTerm pp
-    in if p
-       then Poly l pp
-       else prunePoly' (l - 1) ps
+prunePoly' _ [] = Poly 0 []
+
+prunePoly' l pp@(p:ps) =
+    if p
+    then Poly l pp
+    else prunePoly' (l - 1) ps
 
 
 toInt (Poly len pp) = bitsToInt $ expand len pp
@@ -58,12 +55,12 @@ allPolys len = map (fromBits . intWToBits len []) [1..(2 ^ len - 1)]
 
 {-Multiply by x, then reduce by characteristic polynomial -}
 
-timesX charPoly (Poly l pa) = 
-    let (a, as) = nextTerm pa
-        shifted = (Poly l as)
-    in if a
-       then polySum charPoly shifted
-       else shifted
+timesX charPoly p@(Poly l []) = p
+
+timesX charPoly (Poly l (a:as)) = 
+    if a
+    then polySum charPoly (Poly l as)
+    else (Poly l as)
 
 
 allPowersOfX charPoly n =
@@ -106,9 +103,12 @@ power square times (b:bs) accum =
 
 polySum (Poly la pa) (Poly lb pb) = 
     if la == lb
-    then Poly la (zipWith xor (expand la pa) (expand lb pb))
+    then Poly la (polySum' pa pb)
     else error "Polynomial length mismatch."
 
+polySum' (a:as) (b:bs) = xor a b : polySum' as bs
+polySum' []     bb     = bb
+polySum' aa     []     = aa 
     
 
 
