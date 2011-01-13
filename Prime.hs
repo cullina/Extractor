@@ -1,7 +1,9 @@
 module Prime 
-    ( primes 
-    , factorize
-    ) where
+    ( 
+     primes,
+     factorize
+    )
+where
 
 
 primes = 2 : oddPrimes

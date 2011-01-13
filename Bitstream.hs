@@ -1,4 +1,12 @@
-module Bitstream where
+module Bitstream 
+    (
+     bitsToInt,
+     intToBits,
+     intWToBits,
+     maxInBits,
+     getBit
+    )
+where
 
 import System.Random
 
@@ -47,7 +55,6 @@ intStream gen = let (int, newGen) = random gen
                 in int : intStream newGen
 
 generateList f bs = let (x, bs') = f bs
-
                     in x : generateList f bs'
 
 generateFiniteList f n bs = generateFiniteList' f n ([], bs)

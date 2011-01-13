@@ -2,7 +2,7 @@ module Histogram
     ( 
      histogram,
      treeHistogram,
-
+     flatten
     ) where
 
 import Data.List(foldl', transpose)

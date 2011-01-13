@@ -1,4 +1,4 @@
-module PrimitivePoly where
+module PrimitivePoly (getCharPoly) where
 
 import Prime
 import BinaryField
