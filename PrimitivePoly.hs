@@ -71,5 +71,6 @@ kWeightPoly len k =
 
 oddWeightPolys len = concatMap (kWeightPoly len) [1, 3 .. len - 1] 
 
+getCharPoly :: Int -> Poly
 
 getCharPoly = head . filter primitiveTest . filter irreducibleTest . oddWeightPolys
