@@ -1,23 +1,26 @@
 module Bitstream 
     (
+     RandomizedConstructor(..),
+     Bitstream(..),
      bitsToInt,
      intToBits,
      intWToBits,
      maxInBits,
-     getBit
+     getBit,
+     mapBitstream
     )
 where
 
 import System.Random
+import Data.List(foldl')
+import Control.Monad.State
 
 --Utility
 
 
 bitsToInt = foldl doubleIf 0
 
-doubleIf a b = if b
-               then 2*a + 1
-               else 2*a
+doubleIf a b = 2 * a + if b then 1 else 0
 
 
 intToBits bits 0 = bits
@@ -39,14 +42,19 @@ maxInBits n = intToBits [] (n - 1)
 --bitstreams
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
-getBit ([], n) = error ("Cannot getBit.  Bitstream is empty after " ++ 
+data Bitstream = Bitstream [Bool] Int
+
+newBitstream x = Bitstream x 0
+
+getBit (Bitstream [] n) = error ("Cannot getBit.  Bitstream is empty after " ++ 
                         show n ++ " bits were used from it.")
 
-getBit ((b:bs), n) = (b, (bs, n+1))
+getBit (Bitstream (b:bs) n) = (b, Bitstream bs (n + 1))
 
-bitStream w = attachCounter . (concatMap (intWToBits w [])) . intStream . mkStdGen
+stdBitstream w = newBitstream . (concatMap (intWToBits w [])) . intStream . mkStdGen
 
-attachCounter x = (x, 0)
+
+type RandomizedConstructor a = State Bitstream a
 
 
 intStream :: RandomGen r => r -> [Int]
@@ -54,7 +62,11 @@ intStream :: RandomGen r => r -> [Int]
 intStream gen = let (int, newGen) = random gen
                 in int : intStream newGen
 
-generateList f bs = let (x, bs') = f bs
+generateList :: RandomizedConstructor a -> Bitstream -> [a]
+
+
+
+generateList f bs = let (x, bs') = runState f bs
                     in x : generateList f bs'
 
 generateFiniteList f n bs = generateFiniteList' f n ([], bs)
@@ -63,6 +75,29 @@ generateFiniteList' f 0 p = p
 
 generateFiniteList' f n (xs, bs) = let (x, bs') = f bs
                                    in generateFiniteList' f (n - 1) (x:xs, bs')
+
+
+{-
+
+(>>=) :: (Bitstream -> (a, Bitstream)) -> (a -> Bitstream -> (c, Bitstream)) -> (Bitstream -> (c, Bitstream))
+
+(>>=) f g bs = 
+    let (a, bs') = f bs
+    in g a bs'
+-}
+
+mapBitstream :: (a -> b -> (c, b)) -> [a] -> b -> ([c], b)
+
+mapBitstream f as bs = foldl' (foldHelper f) ([], bs) as
+
+
+foldHelper :: (a -> b -> (c, b)) -> ([c], b) -> a -> ([c], b)
+
+foldHelper f (cs, b) a = 
+    let (c, newB) = f a b
+    in (c:cs, newB)
+
+
 
 
 --Unbias
@@ -74,6 +109,4 @@ vNUnbias bs = let (b1, bs') = getBit bs
                  else (b2, bs'')
 
 
-vNStream :: Int -> ([Bool], Int)
-
-vNStream = attachCounter . (generateList vNUnbias) . (bitStream 64)
+vNStream = newBitstream . (generateList (State vNUnbias)) . (stdBitstream 64)
