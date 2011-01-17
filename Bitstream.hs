@@ -1,6 +1,6 @@
 module Bitstream 
     (
-     RandomizedConstructor(..),
+     RState(..),
      Bitstream(..),
      bitsToInt,
      intToBits,
@@ -12,7 +12,7 @@ module Bitstream
 where
 
 import System.Random
-import Data.List(foldl')
+import Data.List(foldl', unfoldr)
 import Control.Monad.State
 
 --Utility
@@ -42,48 +42,71 @@ maxInBits n = intToBits [] (n - 1)
 --bitstreams
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
+type RState a = State Bitstream a
+
 data Bitstream = Bitstream [Bool] Int
 
 newBitstream x = Bitstream x 0
+
 
 getBit (Bitstream [] n) = error ("Cannot getBit.  Bitstream is empty after " ++ 
                         show n ++ " bits were used from it.")
 
 getBit (Bitstream (b:bs) n) = (b, Bitstream bs (n + 1))
 
-stdBitstream w = newBitstream . (concatMap (intWToBits w [])) . intStream . mkStdGen
+getBitM = State getBit
 
 
-type RandomizedConstructor a = State Bitstream a
+bitstreamFromInts :: Int -> [Int] -> Bitstream
+
+bitstreamFromInts w = 
+    newBitstream . concatMap (intWToBits w [])
+
+stdBitstream = 
+    newBitstream . randomStream
+
+randomStream = unfoldr (Just . random) . mkStdGen
+
+{--------}
+
+generateList :: RState a -> Bitstream -> [a]
+
+generateList m = unfoldr (Just . runState m)
 
 
-intStream :: RandomGen r => r -> [Int]
-
-intStream gen = let (int, newGen) = random gen
-                in int : intStream newGen
-
-generateList :: RandomizedConstructor a -> Bitstream -> [a]
 
 
-
-generateList f bs = let (x, bs') = runState f bs
-                    in x : generateList f bs'
-
-generateFiniteList f n bs = generateFiniteList' f n ([], bs)
+generateFiniteList f n bs = 
+    generateFiniteList' f n ([], bs)
 
 generateFiniteList' f 0 p = p
 
-generateFiniteList' f n (xs, bs) = let (x, bs') = f bs
-                                   in generateFiniteList' f (n - 1) (x:xs, bs')
+generateFiniteList' f n (xs, bs) = 
+    let (x, bs') = f bs
+    in generateFiniteList' f (n - 1) (x:xs, bs')
+   
 
+ 
+generateFiniteListM :: RState a -> Int -> RState [a]
+
+generateFiniteListM m n =
+    generateFiniteListM' m n (return []) 
+
+generateFiniteListM' :: RState a ->  Int -> RState [a] -> RState [a]
+
+generateFiniteListM' m 0 mm = mm
+
+generateFiniteListM' m n mm = 
+    generateFiniteListM' m (n - 1) (liftM2 (:) m mm)
 
 {-
+generateFiniteListM' m n mm = 
+    generateFiniteListM' m (n - 1) (mm >>= append m)
 
-(>>=) :: (Bitstream -> (a, Bitstream)) -> (a -> Bitstream -> (c, Bitstream)) -> (Bitstream -> (c, Bitstream))
 
-(>>=) f g bs = 
-    let (a, bs') = f bs
-    in g a bs'
+append :: RState a -> [a] -> RState [a]
+
+append m xs = liftM (: xs) m
 -}
 
 mapBitstream :: (a -> b -> (c, b)) -> [a] -> b -> ([c], b)
@@ -108,5 +131,7 @@ vNUnbias bs = let (b1, bs') = getBit bs
                  then vNUnbias bs''
                  else (b2, bs'')
 
+vNUnbiasM = State vNUnbias
 
-vNStream = newBitstream . (generateList (State vNUnbias)) . (stdBitstream 64)
+
+vNStream = newBitstream . (generateList vNUnbiasM)
