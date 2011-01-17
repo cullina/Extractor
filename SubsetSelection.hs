@@ -11,6 +11,7 @@ where
 
 import Uniform
 import Data.List(foldl')
+import Control.Monad.State
 
 
 -- Compute binomial coefficients
@@ -61,6 +62,8 @@ subsetFromBitstream n k bs =
     in (subset, bs')
 
 
+subsetIncrementallyM n k = State (subsetIncrementally n k)
+
 subsetIncrementally n k bs = subsetInc n k [] (0,1) bs
 
 subsetInc n 0 subset unif bs = (subset, bs)
@@ -94,7 +97,7 @@ subsetToIndex' (index, max) n k (x:xs) =
 -- index list to subset
 
 
-indicesToSubset indices set = 
+indicesToSubset set indices = 
     let maxIndex = length set - 1                                           
         (a,b,c)  = foldl' picker (0, indices, []) set
     in c 
