@@ -99,15 +99,7 @@ generateFiniteListM' m 0 mm = mm
 generateFiniteListM' m n mm = 
     generateFiniteListM' m (n - 1) (liftM2 (:) m mm)
 
-{-
-generateFiniteListM' m n mm = 
-    generateFiniteListM' m (n - 1) (mm >>= append m)
 
-
-append :: RState a -> [a] -> RState [a]
-
-append m xs = liftM (: xs) m
--}
 
 mapBitstream :: (a -> b -> (c, b)) -> [a] -> b -> ([c], b)
 
