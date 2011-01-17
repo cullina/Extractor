@@ -7,6 +7,7 @@ module Bitstream
      intWToBits,
      maxInBits,
      getBit,
+     getBitM,
      mapBitstream
     )
 where
@@ -99,7 +100,7 @@ generateFiniteListM' m 0 mm = mm
 generateFiniteListM' m n mm = 
     generateFiniteListM' m (n - 1) (liftM2 (:) m mm)
 
-
+{--------}
 
 mapBitstream :: (a -> b -> (c, b)) -> [a] -> b -> ([c], b)
 
@@ -113,8 +114,7 @@ foldHelper f (cs, b) a =
     in (c:cs, newB)
 
 
-
-
+{--------}
 --Unbias
 
 vNUnbias bs = let (b1, bs') = getBit bs
