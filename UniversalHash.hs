@@ -1,8 +1,12 @@
 module UniversalHash where
 
+import Bitstream
 import BinaryField
 import PrimitivePoly
+import SubsetSelection
 import Data.List(foldl')
+import Control.Monad(mapM)
+
 
 basicHash input aBits bBits xBits = 
     let charPoly = getCharPoly input
@@ -25,6 +29,20 @@ universalHash abBits xBits =
     in used ++ alternate hashedBits
         
 
-chainHash = foldl' universalHash
+chainHash xx@(x:xs) bs = 
+    let seedLength  = 2 * length x
+        (seed, bs') = generateFiniteList getBit seedLength bs
+    in (foldl' universalHash (alternate seed) xx, bs')
 
-                     
+pickSubsets bits = 
+    mapM (subsetIncrementallyM (length bits)) >>= liftM (map (indicesToSubset bits))
+
+{-
+subsetSizes (x:xs) (p, q) bound =
+    let next = 
+    if 
+    
+
+extractor bits = pickSubsets bits >>= chainHash . pickSub
+
+-}
