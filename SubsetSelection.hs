@@ -5,6 +5,7 @@ module SubsetSelection
      subsetFromInteger,
      subsetFromBitstream,
      subsetIncrementally,
+     subsetIncrementallyM,
      indicesToSubset
     )
 where
@@ -60,6 +61,7 @@ subsetFromBitstream n k bs =
         (index, bs') = uniform max bs
         subset       = subsetFromInteger' n k [] index
     in (subset, bs')
+
 
 
 subsetIncrementallyM n k = State (subsetIncrementally n k)
