@@ -1,17 +1,28 @@
 module Uniform 
     (
+     newUnifNat,
      dumbUniform, 
      uniform, 
      mergeUniforms, 
+     identityUnifNat,
      extractUseful, 
      uniformFromRecycle, 
      decision,
+     ratioDecision,
      randomDecision,
      efficientDecision
     )
 where
 
 import Bitstream
+
+data UnifNat a = UnifNat {
+      unifValue :: a
+    , maxValue  :: a
+} deriving Show
+
+newUnifNat value max =
+    UnifNat (mod value max) max
 
 --Uniform generation
 
@@ -21,13 +32,13 @@ dumbUniform' max mib bs =
     let (x, bs') = popPush mib [] bs
         try      = bitsToInt (reverse x)
     in if try < max
-       then ((try, max), bs')
+       then (UnifNat try max, bs')
        else dumbUniform' max mib bs'
 
 uniform max bs = 
     let mib        = maxInBits max
         (out, bs') = uniform' mib mib [] bs
-    in ((bitsToInt (reverse out), max), bs')
+    in (UnifNat (bitsToInt (reverse out)) max, bs')
 
 uniform' _ [] xs bs = (xs, bs)
 
@@ -48,15 +59,14 @@ popPush (m:ms) xs bs =
     in  popPush ms (b:xs) bs'
 
 
-                    
-
 --uniform manipulation
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
 --first argument affects high order bits
 
-mergeUniforms (a,b) (c,d) = (a * d + c, b * d)
+mergeUniforms (UnifNat a b) (UnifNat c d) = UnifNat (a * d + c) (b * d)
 
+identityUnifNat = UnifNat 0 1
 
 gcdPlus a b = 
     let c = gcd a b
@@ -65,11 +75,11 @@ gcdPlus a b =
     in (c, d, e)
 
 --use high order bits
-extractUseful max (a,b) = 
+extractUseful max (UnifNat a b) = 
     let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
         (q, r)                                  = quotRem a leftoverSize
-        useful                                  = (q, usefulSize)
-        leftover                                = (r, leftoverSize)
+        useful                                  = UnifNat q usefulSize
+        leftover                                = UnifNat r leftoverSize
     in (useful, stillNeeded, leftover)
 
 -- more uniform generation
@@ -81,10 +91,10 @@ uniformFromRecycle max randInt bs =
         merged                          = mergeUniforms newInt useful
     in (merged, leftover, bs')   
 
-uniformFromRecycle2 max (a, b) bs =
+uniformFromRecycle2 max n@(UnifNat a b) bs =
     let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
         (newInt, bs')                           = uniform stillNeeded bs
-        merged                                  = mergeUniforms newInt (a, b)
+        merged                                  = mergeUniforms newInt n
     in (merged, leftoverSize, bs')
 
 
@@ -93,10 +103,14 @@ uniformFromRecycle2 max (a, b) bs =
 
 --decisions are made using high order bits
 
-decision (a,b) threshold = 
+decision (UnifNat a b) threshold = 
     if a >= threshold
-    then (True, (a - threshold, b - threshold))
-    else (False, (a, threshold))
+    then (True, UnifNat (a - threshold) (b - threshold))
+    else (False, UnifNat a threshold)
+
+ratioDecision n@(UnifNat a b) numer denom = 
+    let threshold = (b * numer) `div` denom
+    in decision n threshold
 
 randomDecision threshold max bs =
     let (randInt, bs') = uniform max bs

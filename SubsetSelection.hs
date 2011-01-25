@@ -42,16 +42,12 @@ chooseList' n k = let (a,b) = chooseList' (n-1) (k-1)
 --index ranges from [0 , nCk)
 
 subsetFromInteger n k index = 
-    let nCk    = choose n k
-        index' = rem index nCk
-    in subsetFromInteger' n k [] (index', nCk)
+    subsetFromInteger' n k [] (newUnifNat index (choose n k))
 
 subsetFromInteger' n 0 subset index = subset
 
 subsetFromInteger' n k subset index =
-    let nCk = snd index
-        threshold = div (nCk * (n - k)) n
-        (d, leftover) = decision index threshold
+    let (d, leftover) = ratioDecision index (n - k) n
     in if d
        then subsetFromInteger' (n - 1) (k - 1) ((n - 1) : subset) leftover 
        else subsetFromInteger' (n - 1) k subset leftover
@@ -66,7 +62,7 @@ subsetFromBitstream n k bs =
 
 subsetIncrementallyM n k = State (subsetIncrementally n k)
 
-subsetIncrementally n k bs = subsetInc n k [] (0,1) bs
+subsetIncrementally n k bs = subsetInc n k [] identityUnifNat bs
 
 subsetInc n 0 subset unif bs = (subset, bs)
 
