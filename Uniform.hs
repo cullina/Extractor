@@ -35,6 +35,7 @@ dumbUniform' max mib bs =
        then (UnifNat try max, bs')
        else dumbUniform' max mib bs'
 
+
 uniform max bs = 
     let mib        = maxInBits max
         (out, bs') = uniform' mib mib [] bs
@@ -57,6 +58,47 @@ popPush [] xs bs = (xs, bs)
 popPush (m:ms) xs bs = 
     let (b, bs') = getBit bs
     in  popPush ms (b:xs) bs'
+
+
+recycleUniform max bs = recycleUniform' max 0 1 bs
+
+recycleUniform' max num den bs =
+    if den >= max
+    then if num < max
+         then ((UnifNat num max), bs)
+         else recycleUniform' max (num - max) (den - max) bs
+    else let (b, bs') = getBit bs
+             num' = doubleIf num b
+         in recycleUniform' max num' (2 * den) bs'
+
+
+-- False with probability num/den
+
+biasedBit den 0 bs = (True, bs)
+
+biasedBit den num bs = 
+    let (b, bs') = getBit bs
+        num'     = 2 * num
+    in if num' >= den
+       then if b
+            then biasedBit den (num' - den) bs'
+            else (b, bs')
+       else if b
+            then (b, bs')
+            else biasedBit den num' bs'
+
+uniformViaReal max bs = 
+    let mib      = maxInBits max
+        denom    = 2 ^ length mib
+        (x, bs') = popPush mib [] bs
+        try      = bitsToInt (reverse x)
+        (q, r)   = quotRem (try * max) denom
+    in if r + max <= denom
+       then (UnifNat q max, bs')
+       else let (b, bs'') = biasedBit max (denom - r) bs'
+            in if b
+               then (UnifNat (q+1) max, bs'')
+               else (UnifNat  q    max, bs'')
 
 
 --uniform manipulation

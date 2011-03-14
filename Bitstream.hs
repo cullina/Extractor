@@ -3,6 +3,7 @@ module Bitstream
      RState(..),
      Bitstream(..),
      bitsToInt,
+     doubleIf,
      intToBits,
      intWToBits,
      maxInBits,
@@ -18,6 +19,7 @@ import Control.Monad.State
 
 --Utility
 
+-- most significant bits first
 
 bitsToInt = foldl doubleIf 0
 
@@ -45,7 +47,7 @@ maxInBits n = intToBits [] (n - 1)
 
 type RState a = State Bitstream a
 
-data Bitstream = Bitstream [Bool] Int
+data Bitstream = Bitstream [Bool] Int deriving Show
 
 newBitstream x = Bitstream x 0
 
