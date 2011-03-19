@@ -4,18 +4,19 @@ import Bitstream
 
 
 data BinaryTree a = Leaf | 
-                    Branch a (BinaryTree a) (BinaryTree a)
+                    Branch (Maybe a) (BinaryTree a) (BinaryTree a)
 
 instance Show a => Show (BinaryTree a) where
     show Leaf = "_"
-    show (Branch x l r) = "(" ++ show x ++ "," ++ show l ++ "," ++ show r ++ ")"
+    show (Branch Nothing l r) = "(_," ++ show l ++ "," ++ show r ++ ")"
+    show (Branch (Just x) l r) = "(" ++ show x ++ "," ++ show l ++ "," ++ show r ++ ")"
 
-newNode x = Branch x Leaf Leaf
+newNode x = Branch (Just x) Leaf Leaf
 
 
 getValue Leaf _ = Nothing
 
-getValue (Branch x l r) [] = Just x
+getValue (Branch x l r) [] = x
 
 getValue (Branch x l r) (b:bs) = 
     if b
@@ -31,28 +32,28 @@ dereference tree (b:bs) =
     else dereference tree bs
 
 
-modifyNode defVal f Leaf [] = newNode (f defVal)
+modifyNode f Leaf [] = Branch (f Nothing) Leaf Leaf
 
-modifyNode defVal f (Branch x l r) [] = Branch (f x) l r
+modifyNode f (Branch x l r) [] = Branch (f x) l r
 
-modifyNode defVal f Leaf (b:bs) = 
+modifyNode f Leaf (b:bs) = 
     if b
-    then Branch defVal Leaf (modifyNode defVal f Leaf bs)
-    else Branch defVal (modifyNode defVal f Leaf bs) Leaf
+    then Branch Nothing Leaf (modifyNode f Leaf bs)
+    else Branch Nothing (modifyNode f Leaf bs) Leaf
 
-modifyNode defVal f (Branch x l r) (b:bs) =
+modifyNode f (Branch x l r) (b:bs) =
     if b
-    then Branch x l (modifyNode defVal f r bs)
-    else Branch x (modifyNode defVal f l bs) r
+    then Branch x l (modifyNode f r bs)
+    else Branch x (modifyNode f l bs) r
 
 
-setNode defVal value = modifyNode defVal (const value)
+setNode value = modifyNode (const (Just value))
 
 listToTree cs = listToTree' 1 Leaf cs
 
 listToTree' n tree [] = tree
 
 listToTree' n tree (c:cs) = 
-    let tree' = setNode c c tree (natToBits [] n)
+    let tree' = setNode c tree (natToBits [] n)
     in listToTree' (n+1) tree' cs
 
