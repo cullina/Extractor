@@ -29,9 +29,8 @@ completeParse' n tree [] = []
 
 completeParse' n tree bs = 
     let (tree', chunk, bs') = parse n tree (TerminalChunk Nothing) bs
-    in case chunk of
-         Chunk _ _       -> chunk:(completeParse' (n+1) tree' bs')
-         TerminalChunk _ -> chunk:[]
+    in chunk:(completeParse' (n+1) tree' bs')
+
 
 bitsNeeded = bitsNeeded' 1 1 0
 
@@ -46,7 +45,7 @@ serialize cs = serialize' bitsNeeded cs
 serialize' _ [] = []
 
 serialize' (m:ms) ((TerminalChunk (Just k)):cs) =
-    intWToBits m [] k
+    intWToBits m [] k ++ serialize' ms cs
 
 serialize' (m:ms) ((Chunk (Just k) b):cs) =
     intWToBits m [] k ++ b : serialize' ms cs

@@ -30,6 +30,7 @@ histogram :: [Int] -> [Int]
 
 histogram = foldl' histogramUpdate []
 
+{----------------------------------------------------------------}
 
 newNode = HNode 0 EmptyH EmptyH
 

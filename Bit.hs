@@ -71,4 +71,4 @@ incrementInt' [] = ([], True)
 
 incrementInt' (b:bs) = 
     let (lowBits, carry) = incrementInt' bs
-    in (xor b carry : bs, (&&) b carry)  
+    in (xor b carry : lowBits, (&&) b carry)  
