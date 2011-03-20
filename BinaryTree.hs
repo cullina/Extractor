@@ -1,6 +1,7 @@
 module BinaryTree where
 
-import Bitstream
+import Bit
+import Data.List(foldl')
 
 
 data BinaryTree a = Leaf | 
@@ -14,22 +15,39 @@ instance Show a => Show (BinaryTree a) where
 newNode x = Branch (Just x) Leaf Leaf
 
 
-getValue Leaf _ = Nothing
+value Leaf = Nothing
 
-getValue (Branch x l r) [] = x
+value (Branch x l r) = x
 
-getValue (Branch x l r) (b:bs) = 
+
+getNode Leaf _ = Leaf
+
+getNode t@(Branch x l r) [] = t
+
+getNode (Branch x l r) (b:bs) = 
     if b
-    then getValue r bs
-    else getValue l bs
+    then getNode r bs
+    else getNode l bs
 
 
-dereference tree [] = Nothing
+-- Ignores all leading zeros and one leading one, then calls f.
+-- If there is no one, returns Nothing
+ignorePrefixBits f [] = Nothing
 
-dereference tree (b:bs) = 
+ignorePrefixBits f (b:bs) = 
     if b
-    then getValue tree bs
-    else dereference tree bs
+    then f bs
+    else ignorePrefixBits f bs
+
+stripPrefixBits [] = []
+
+stripPrefixBits (b:bs) = 
+    if b
+    then bs
+    else stripPrefixBits bs
+
+
+safeGetValue tree = ignorePrefixBits (value . getNode tree)
 
 
 modifyNode f Leaf [] = Branch (f Nothing) Leaf Leaf
@@ -49,11 +67,7 @@ modifyNode f (Branch x l r) (b:bs) =
 
 setNode value = modifyNode (const (Just value))
 
-listToTree cs = listToTree' 1 Leaf cs
+listToTree xs = snd $ foldl' append ([], Leaf) xs
 
-listToTree' n tree [] = tree
-
-listToTree' n tree (c:cs) = 
-    let tree' = setNode c tree (natToBits [] n)
-    in listToTree' (n+1) tree' cs
-
+append (n, tree) x =
+    (incrementNat n, setNode x tree n)

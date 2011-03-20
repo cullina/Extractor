@@ -2,53 +2,16 @@ module Bitstream
     (
      RState(..),
      Bitstream(..),
-     bitsToInt,
-     doubleIf,
-     intToBits,
-     natToBits,
-     intWToBits,
-     maxInBits,
      getBit,
      getBitM,
      mapBitstream
     )
 where
 
+import Bit
 import System.Random
 import Data.List(foldl', unfoldr)
 import Control.Monad.State
-
---Utility
-
--- most significant bits first
-
-bitsToInt = foldl doubleIf 0
-
-doubleIf a b = 2 * a + if b then 1 else 0
-
-
-intToBits bits 0 = bits
-intToBits bits n = 
-    let (q, r) = quotRem n 2
-    in intToBits ((r == 1) : bits) q
-
-
-natToBits bits 1 = bits
-
-natToBits bits n = 
-    let (q, r) = quotRem n 2
-    in natToBits ((r == 1) : bits) q
-
-
-intWToBits :: (Integral a, Integral b) => a -> [Bool] -> b -> [Bool]
-
-intWToBits 0 bits n = bits
-
-intWToBits w bits n = let (q, r) = quotRem n 2
-                      in intWToBits (w - 1) ((r == 1) : bits) q
-
-
-maxInBits n = intToBits [] (n - 1)
 
 
 --bitstreams

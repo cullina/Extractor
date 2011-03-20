@@ -1,7 +1,7 @@
 module LempelZiv where
 
 import BinaryTree
-import Bitstream
+import Bit
 
 
 data Chunk a = Chunk a Bool |
@@ -9,19 +9,18 @@ data Chunk a = Chunk a Bool |
                deriving Show
 
 
-parse :: Int -> BinaryTree Int -> Chunk Int -> [Bool] -> (BinaryTree Int, Chunk Int, [Bool])
 
 parse n Leaf chunk bs = (newNode n, chunk, bs)
 
-parse n t@(Branch (Just x) l r) _ [] = (t, TerminalChunk x, [])
+parse n t@(Branch x l r) _ [] = (t, TerminalChunk x, [])
 
-parse n (Branch (Just x) l r) _ (b:bs) =
+parse n (Branch x l r) _ (b:bs) =
     let chunk = Chunk x b
     in if b
        then let (r', chunk', bs') = parse n r chunk bs
-            in (Branch (Just x) l r', chunk', bs')
+            in (Branch x l r', chunk', bs')
        else let (l', chunk', bs') = parse n l chunk bs
-            in (Branch (Just x) l' r, chunk', bs')
+            in (Branch x l' r, chunk', bs')
 
 
 completeParse bs = completeParse' 1 (newNode 0) bs
@@ -29,7 +28,7 @@ completeParse bs = completeParse' 1 (newNode 0) bs
 completeParse' n tree [] = []
 
 completeParse' n tree bs = 
-    let (tree', chunk, bs') = parse n tree (TerminalChunk 0) bs
+    let (tree', chunk, bs') = parse n tree (TerminalChunk Nothing) bs
     in case chunk of
          Chunk _ _       -> chunk:(completeParse' (n+1) tree' bs')
          TerminalChunk _ -> chunk:[]
@@ -46,10 +45,10 @@ serialize cs = serialize' bitsNeeded cs
 
 serialize' _ [] = []
 
-serialize' (m:ms) ((TerminalChunk k):cs) =
+serialize' (m:ms) ((TerminalChunk (Just k)):cs) =
     intWToBits m [] k
 
-serialize' (m:ms) ((Chunk k b):cs) =
+serialize' (m:ms) ((Chunk (Just k) b):cs) =
     intWToBits m [] k ++ b : serialize' ms cs
        
 
@@ -64,10 +63,10 @@ deserialize' (m:ms) bs =
 translate tree bs Nothing = bs
 
 translate tree bs (Just (TerminalChunk k)) = 
-    translate tree bs $ dereference tree k
+    translate tree bs $ safeGetValue tree k
 
 translate tree bs (Just (Chunk k b)) = 
-    translate tree (b:bs) $ dereference tree k
+    translate tree (b:bs) $ safeGetValue tree k
 
 
 encodeLempelZiv = serialize . completeParse

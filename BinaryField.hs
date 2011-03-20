@@ -13,7 +13,7 @@ module BinaryField
     )
 where
 
-import Bitstream(bitsToInt, intToBits, intWToBits)
+import Bit(bitsToInt, intToBits, intWToBits, xor)
 
 data Poly = Poly {
       polyLen  :: Int 
@@ -26,9 +26,6 @@ instance Show Poly where
 
 
 showBool b = if b then 'X' else '_'
-
-xor True = not
-xor False = id
 
 {------}
 
