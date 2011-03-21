@@ -19,6 +19,13 @@ value Leaf = Nothing
 
 value (Branch x l r) = x
 
+left Leaf = Leaf
+
+left (Branch x l r) = l
+
+right Leaf = Leaf
+
+right (Branch x l r) = r
 
 getNode Leaf _ = Leaf
 
@@ -71,3 +78,24 @@ listToTree xs = snd $ foldl' append ([], Leaf) xs
 
 append (n, tree) x =
     (incrementNat n, setNode x tree n)
+
+
+getDepth :: Int -> BinaryTree a -> [Maybe a]
+
+getDepth n = concat . getDepth' n
+
+getDepth' :: Int -> BinaryTree a -> [[Maybe a]]
+
+getDepth' 0 t = []
+
+getDepth' n t =
+    let l = getDepth' (n - 1) $ left t
+        r = getDepth' (n - 1) $ right t
+    in [value t] : zipWith (++) l r
+
+
+findDepth Leaf = 0
+
+findDepth (Branch _ l r) = 1 + max (findDepth l) (findDepth r)
+
+flatten tree = getDepth (findDepth tree) tree 
