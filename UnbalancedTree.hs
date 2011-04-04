@@ -2,8 +2,8 @@ module UnbalancedTree where
 
 import Bit
 
-data UnbalancedTree = Leaf | 
-                      Branch Int UnbalancedTree UnbalancedTree
+data UnbalancedTree = Leaf | Branch Int UnbalancedTree UnbalancedTree
+                      deriving Show
 
 
 sizeOf Leaf = 1
@@ -12,13 +12,6 @@ sizeOf (Branch size _ _) = size
 
 newBranch = Branch 2 Leaf Leaf
 
-
-bitsToIndexList bs = bitsToIndexList' [True, False] newBranch bs
-
-bitsToIndexList' max tree bs =
-    case bitsToIndex tree 0 bs of
-      Just (tree', index, bs') -> toPrefixCode max index : bitsToIndexList' (incrementInt max) tree' bs'
-      Nothing                  -> natToBits (bitsToInternalIndex tree 0 bs) : []
 
 
 
@@ -47,12 +40,9 @@ bitsToInternalIndex (Branch size left right) index (True:bs) =
     bitsToInternalIndex right (index + sizeOf left) bs
     
     
+   
 
-
-    
-
-indexToBits Leaf index = 
-    (newBranch, [])
+indexToBits Leaf index = (newBranch, [])
 
 indexToBits (Branch size left right) index = 
        if index >= sizeOf left
@@ -62,12 +52,39 @@ indexToBits (Branch size left right) index =
             in( Branch (size+1) left' right, False : bs)
 
 --does not change tree
-internalIndexToBits _ 0 = []
+internalIndexToBits _ 1 = []
 
 internalIndexToBits (Branch size left right) index = 
-   if index >= sizeOf left
+   if index > sizeOf left
        then True : internalIndexToBits right (index - sizeOf left)
        else False : internalIndexToBits left (index - 1)
 
 
-     
+prefixCodeToInt max = prefixCodeToInt' max 1
+
+prefixCodeToInt' max n (b:bs) =
+    let n' = doubleIf n b
+    in if n' >= max
+       then (n' - max, Just bs)
+       else prefixCodeToInt' max n' bs
+
+prefixCodeToInt' max n [] = (n, Nothing)
+
+-----------------------------------------------------------------------------------------------     
+
+encode bs = concat $ encode' newBranch bs
+
+encode' tree bs =
+    case bitsToIndex tree 0 bs of
+      Just (tree', index, bs') -> natToBits (index + sizeOf tree) : encode' tree' bs'
+      Nothing                  -> natToBits (bitsToInternalIndex tree 1 bs) : []
+
+
+decode bs = concat $ decode' newBranch bs
+
+decode' tree bs =
+    case prefixCodeToInt (sizeOf tree) bs of
+      (index, Just bs') -> let (tree', bits) = indexToBits tree index
+                           in bits : decode' tree' bs'
+      (index, Nothing)  -> internalIndexToBits tree index : []
+    
