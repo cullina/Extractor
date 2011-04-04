@@ -9,9 +9,7 @@ module Bit
      maxInBits,
      xor,
      incrementInt,
-     incrementNat,
-     toPrefixCode,
-     fromPrefixCode
+     incrementNat
     )
 where
 
@@ -24,7 +22,11 @@ t = True
 
 -- most significant bits first
 
+bitsToInt :: (Integral a) => [Bool] -> a
+
 bitsToInt = foldl' doubleIf 0
+
+bitsToNat :: (Integral a) => [Bool] -> a
 
 bitsToNat = foldl' doubleIf 1
 
@@ -82,42 +84,3 @@ incrementInt' (b:bs) =
     let (lowBits, carry) = incrementInt' bs
     in (xor b carry : lowBits, (&&) b carry)  
 
-
-
-
-
-toPrefixCode max n = 
-    let bits = intWToBits (length max) [] n
-    in toPrefixCode' (zip max bits)
-
-toPrefixCode' [] = []
-
-toPrefixCode' ((True,True):bs) = True : toPrefixCode' bs
-
-toPrefixCode' ((True,False):bs) = False : map snd bs
-
-toPrefixCode' ((False, _):bs) = toPrefixCode' bs
-
-
-fromPrefixCode [] bs = Just ([], bs)
-
-fromPrefixCode (False:max) bs = False `consFst` fromPrefixCode max bs
-
-fromPrefixCode (True:max) [] = Nothing
-
-fromPrefixCode (True:max) (True:bs) = True `consFst` fromPrefixCode max bs
-
-fromPrefixCode (True:max) (False:bs) = False `consFst` safeSplitAt max bs
-
-
-safeSplitAt [] bs = Just ([], bs)
-
-safeSplitAt (m:ms) [] = Nothing
-
-safeSplitAt (m:ms) (b:bs) = b `consFst` safeSplitAt ms bs
-
-
-
-consFst x (Just (xs,y)) = Just (x:xs, y)
-
-consFst x Nothing = Nothing
