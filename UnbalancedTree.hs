@@ -13,33 +13,21 @@ sizeOf (Branch size _ _) = size
 newBranch = Branch 2 Leaf Leaf
 
 
+bitsToIndex Leaf bs = 
+    (0, Just (newBranch, bs))
 
+bitsToIndex (Branch _ _ _) [] = 
+    (1, Nothing)
 
-bitsToIndex Leaf index bs =
-    Just (newBranch, index, bs)
+bitsToIndex (Branch size left right) (False:bs) =
+    case bitsToIndex left bs of
+      (index, Just (left', bs')) -> (index, Just (Branch (size+1) left' right, bs'))
+      (index, Nothing)           -> (index + 1, Nothing)
 
-bitsToIndex (Branch _ _ _) _ [] = Nothing
-
-bitsToIndex (Branch size left right) index (False:bs) =
-    case bitsToIndex left index bs of
-      Just (left', index', bs') -> Just (Branch (size+1) left' right, index', bs')
-      Nothing                   -> Nothing
-
-bitsToIndex (Branch size left right) index (True:bs) =
-    case bitsToIndex right (index + sizeOf left) bs of
-      Just (right', index', bs') -> Just (Branch (size+1) left right', index', bs')
-      Nothing                    -> Nothing
-
---does not change tree
-bitsToInternalIndex tree index [] = index
-
-bitsToInternalIndex (Branch size left right) index (False:bs) =
-    bitsToInternalIndex left (index + 1) bs
-
-bitsToInternalIndex (Branch size left right) index (True:bs) =
-    bitsToInternalIndex right (index + sizeOf left) bs
-    
-    
+bitsToIndex (Branch size left right) (True:bs) =
+    case bitsToIndex right bs of
+      (index, Just (right', bs')) -> (index + sizeOf left, Just (Branch (size+1) left right', bs'))
+      (index, Nothing)            -> (index + sizeOf left, Nothing)
    
 
 indexToBits Leaf index = (newBranch, [])
@@ -59,32 +47,50 @@ internalIndexToBits (Branch size left right) index =
        then True : internalIndexToBits right (index - sizeOf left)
        else False : internalIndexToBits left (index - 1)
 
+---------------------------------------------
 
-prefixCodeToInt max = prefixCodeToInt' max 1
-
-prefixCodeToInt' max n (b:bs) =
+prefixCodeToInt max n (b:bs) =
     let n' = doubleIf n b
     in if n' >= max
        then (n' - max, Just bs)
-       else prefixCodeToInt' max n' bs
+       else prefixCodeToInt max n' bs
 
-prefixCodeToInt' max n [] = (n, Nothing)
+prefixCodeToInt max n [] = (n, Nothing)
+
+-----------------------------------------------------------
+
+codeToIndices (m:ms) bs =
+    case prefixCodeToInt m 1 bs of
+      (index, Just bs') -> index : codeToIndices ms bs'
+      (index, Nothing)  -> index : []
+          
+
+indicesToCode (m:ms) [] = []
+
+indicesToCode (m:ms) (n:[]) = natToBits n : []
+
+indicesToCode (m:ms) (n:ns) = natToBits (n + m) : indicesToCode ms ns
+
+------------------------------------------------------
+
+computeIndices tree bs = 
+    case bitsToIndex tree bs of
+      (index, Just (tree', bs')) -> index : computeIndices tree' bs'
+      (index, Nothing)           -> index : []
+
+
+translateIndices tree [] = []
+
+translateIndices tree (n:[]) =
+    internalIndexToBits tree n : []
+
+translateIndices tree (n:ns) =
+    let (tree', bits) = indexToBits tree n
+    in bits : translateIndices tree' ns
+
 
 -----------------------------------------------------------------------------------------------     
 
-encode bs = concat $ encode' newBranch bs
+encode = concat . indicesToCode [2..] . computeIndices newBranch
 
-encode' tree bs =
-    case bitsToIndex tree 0 bs of
-      Just (tree', index, bs') -> natToBits (index + sizeOf tree) : encode' tree' bs'
-      Nothing                  -> natToBits (bitsToInternalIndex tree 1 bs) : []
-
-
-decode bs = concat $ decode' newBranch bs
-
-decode' tree bs =
-    case prefixCodeToInt (sizeOf tree) bs of
-      (index, Just bs') -> let (tree', bits) = indexToBits tree index
-                           in bits : decode' tree' bs'
-      (index, Nothing)  -> internalIndexToBits tree index : []
-    
+decode = concat . translateIndices newBranch . codeToIndices [2..]
