@@ -30,14 +30,14 @@ bitsToIndex (Branch size left right) (True:bs) =
       (index, Nothing)            -> (index + sizeOf left, Nothing)
    
 
-indexToBits Leaf index = (newBranch, [])
+indexToBits Leaf index = ([], newBranch)
 
 indexToBits (Branch size left right) index = 
        if index >= sizeOf left
-       then let (right', bs) = indexToBits right (index - sizeOf left)
-            in( Branch (size+1) left right', True : bs)
-       else let (left', bs)  = indexToBits left index
-            in( Branch (size+1) left' right, False : bs)
+       then let (bs, right') = indexToBits right (index - sizeOf left)
+            in(True : bs, Branch (size+1) left right')
+       else let (bs, left')  = indexToBits left index
+            in(False : bs, Branch (size+1) left' right)
 
 --does not change tree
 internalIndexToBits _ 1 = []
@@ -85,7 +85,7 @@ translateIndices tree (n:[]) =
     internalIndexToBits tree n : []
 
 translateIndices tree (n:ns) =
-    let (tree', bits) = indexToBits tree n
+    let (bits, tree') = indexToBits tree n
     in bits : translateIndices tree' ns
 
 
