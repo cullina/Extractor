@@ -4,6 +4,9 @@ module Bitstream
      Bitstream(..),
      getBit,
      getBitM,
+     mapFst,
+     stdBitstream,
+     newBitstream,
      mapBitstream
     )
 where
@@ -19,7 +22,11 @@ import Control.Monad.State
 
 type RState a = State Bitstream a
 
-data Bitstream = Bitstream [Bool] Int deriving Show
+data Bitstream = Bitstream [Bool] Int
+
+instance Show Bitstream where
+    show (Bitstream bits n) = 
+        "Bitstream " ++ show (take 10 bits) ++ show n
 
 newBitstream x = Bitstream x 0
 
@@ -30,6 +37,9 @@ getBit (Bitstream [] n) = error ("Cannot getBit.  Bitstream is empty after " ++
 getBit (Bitstream (b:bs) n) = (b, Bitstream bs (n + 1))
 
 getBitM = State getBit
+
+
+mapFst f (x, y) = (f x, y)
 
 
 bitstreamFromInts :: Int -> [Int] -> Bitstream
