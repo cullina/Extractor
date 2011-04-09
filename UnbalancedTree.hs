@@ -59,17 +59,17 @@ prefixCodeToInt max n [] = (n, Nothing)
 
 -----------------------------------------------------------
 
-codeToIndices (m:ms) bs =
-    case prefixCodeToInt m 1 bs of
-      (index, Just bs') -> index : codeToIndices ms bs'
+codeToIndices max bs =
+    case prefixCodeToInt max 1 bs of
+      (index, Just bs') -> index : codeToIndices (max + 1) bs'
       (index, Nothing)  -> index : []
           
 
-indicesToCode (m:ms) [] = []
+indicesToCode max [] = []
 
-indicesToCode (m:ms) (n:[]) = natToBits n : []
+indicesToCode max (n:[]) = natToBits n : []
 
-indicesToCode (m:ms) (n:ns) = natToBits (n + m) : indicesToCode ms ns
+indicesToCode max (n:ns) = natToBits (n + max) : indicesToCode (max + 1) ns
 
 ------------------------------------------------------
 
@@ -91,6 +91,6 @@ translateIndices tree (n:ns) =
 
 -----------------------------------------------------------------------------------------------     
 
-encode = concat . indicesToCode [2..] . computeIndices newBranch
+encode = concat . indicesToCode 2 . computeIndices newBranch
 
-decode = concat . translateIndices newBranch . codeToIndices [2..]
+decode = concat . translateIndices newBranch . codeToIndices 2
