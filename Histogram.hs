@@ -2,7 +2,8 @@ module Histogram
     ( 
      histogram,
      treeHistogram,
-     flatten
+     flatten,
+     mean
     ) where
 
 import Data.List(foldl', transpose)
@@ -32,6 +33,10 @@ incNode Nothing = Just 1
 
 incNode (Just n) = Just (n+1)
 
-treeHistogramUpdate tree = modifyNode incNode tree . natToBits [] . (+) 1 
+treeHistogramUpdate tree = modifyNode incNode tree . natToBits . (+) 1 
 
 treeHistogram = map (maybe 0 id) . flatten . foldl' treeHistogramUpdate Leaf
+
+----------------
+
+mean xs = fromIntegral (sum (zipWith (*) [0..] xs)) / fromIntegral (sum xs)
