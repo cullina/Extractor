@@ -1,7 +1,6 @@
 module Uniform 
     (
      newUnifNat,
-     dumbUniform, 
      uniform, 
      mergeUniforms, 
      identityUnifNat,
@@ -14,6 +13,7 @@ module Uniform
     )
 where
 
+import Bit
 import Bitstream
 
 data UnifNat a = UnifNat {
@@ -26,32 +26,35 @@ newUnifNat value max =
 
 --Uniform generation
 
-dumbUniform max bs = dumbUniform' max (maxInBits max) bs
+uniform = recycleUniform
 
-dumbUniform' max mib bs = 
+--simple rejection sampling
+rejectUniform max bs = rejectUniform' max (maxInBits max) bs
+
+rejectUniform' max mib bs = 
     let (x, bs') = popPush mib [] bs
         try      = bitsToInt (reverse x)
     in if try < max
        then (UnifNat try max, bs')
-       else dumbUniform' max mib bs'
+       else rejectUniform' max mib bs'
 
-
-uniform max bs = 
+--fail fast rejection sampling
+fastRejectUniform max bs = 
     let mib        = maxInBits max
-        (out, bs') = uniform' mib mib [] bs
+        (out, bs') = fastRejectUniform' mib mib [] bs
     in (UnifNat (bitsToInt (reverse out)) max, bs')
 
-uniform' _ [] xs bs = (xs, bs)
+fastRejectUniform' _ [] xs bs = (xs, bs)
 
-uniform' mib (m:ms) xs bs = 
+fastRejectUniform' mib (m:ms) xs bs = 
     let (b, bs') = getBit bs 
     in if m
        then if b
-            then uniform' mib ms (b:xs) bs'   {- append and continue -}
+            then fastRejectUniform' mib ms (b:xs) bs'   {- append and continue -}
             else popPush ms (b:xs) bs'        {- append, continue without further checks -}
        else if b
-            then uniform' mib mib [] bs'      {- discard and restart -}
-            else uniform' mib ms (b:xs) bs'   {- append and continue -}
+            then fastRejectUniform' mib mib [] bs'      {- discard and restart -}
+            else fastRejectUniform' mib ms (b:xs) bs'   {- append and continue -}
 
 popPush [] xs bs = (xs, bs)
 
@@ -60,16 +63,16 @@ popPush (m:ms) xs bs =
     in  popPush ms (b:xs) bs'
 
 
-recycleUniform max bs = recycleUniform' max 0 1 bs
+--recycle rejected portion of interval
+recycleUniform max bs = recycleUniform' max identityUnifNat bs
 
-recycleUniform' max num den bs =
-    if den >= max
-    then if num < max
-         then ((UnifNat num max), bs)
-         else recycleUniform' max (num - max) (den - max) bs
-    else let (b, bs') = getBit bs
-             num' = doubleIf num b
-         in recycleUniform' max num' (2 * den) bs'
+recycleUniform' max u bs =
+    if maxValue u < max
+    then let (b, bs') = getBit bs
+         in recycleUniform' max (addBit u b) bs'
+    else case decision u max of
+           (False, u') -> (u', bs)
+           (True, u')  -> recycleUniform' max u' bs
 
 
 -- False with probability num/den
@@ -105,6 +108,8 @@ uniformViaReal max bs =
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
 --first argument affects high order bits
+
+addBit (UnifNat x y) bit = UnifNat (doubleIf x bit) (2 * y)
 
 mergeUniforms (UnifNat a b) (UnifNat c d) = UnifNat (a * d + c) (b * d)
 
@@ -169,3 +174,26 @@ efficientDecision2 threshold max randInt bs =
     let (merged, leftover, bs') = uniformFromRecycle2 max randInt bs
         (d, leftover2)          = decision merged (threshold * leftover)
     in (d, leftover2, bs')
+
+-- nonuniform finite support random variables
+{------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
+
+data Weighted a b = Weighted a [(a,b)]
+
+
+newWeighted weights = Weighted (sum (map fst weights)) weights
+
+
+newWeightedInts weights = newWeighted $ zip weights [0..]
+
+
+lookupValue (Weighted total pxs) n =
+    lookupValue' pxs (mod n total)
+
+lookupValue' ((p,x):pxs) n = 
+    if p > n
+    then x
+    else lookupValue' pxs (n-p)
+
+weightedViaUniform unifSource w@(Weighted total weights) bs =
+    mapFst (lookupValue w) $ unifSource total bs
