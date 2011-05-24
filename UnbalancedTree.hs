@@ -10,33 +10,55 @@ sizeOf Leaf = 1
 
 sizeOf (Branch size _ _) = size 
 
-newBranch = Branch 2 Leaf Leaf
+
+newSubTree 0 = Leaf
+
+newSubTree depth = 
+    let t = newSubTree (depth - 1)
+    in Branch (2 * sizeOf t) t t
 
 
-bitsToIndex Leaf bs = 
-    (0, Just (newBranch, bs))
+unbalancedSubTree = unbalancedSubTree' . natToBits
 
-bitsToIndex (Branch _ _ _) [] = 
+unbalancedSubTree' [] = Leaf
+
+unbalancedSubTree' (True:bs) = 
+    let l = newSubTree (1 + length bs)
+        r = unbalancedSubTree' bs
+    in Branch (sizeOf l + sizeOf r) l r
+
+unbalancedSubTree' (False:bs) = 
+    let l = unbalancedSubTree' bs
+        r = newSubTree (length bs)
+    in Branch (sizeOf l + sizeOf r) l r
+
+
+
+
+bitsToIndex subTree Leaf bs = 
+    (0, Just (subTree, bs))
+
+bitsToIndex subTree (Branch _ _ _) [] = 
     (1, Nothing)
 
-bitsToIndex (Branch size left right) (False:bs) =
-    case bitsToIndex left bs of
+bitsToIndex subTree (Branch size left right) (False:bs) =
+    case bitsToIndex subTree left bs of
       (index, Just (left', bs')) -> (index, Just (Branch (size+1) left' right, bs'))
       (index, Nothing)           -> (index + 1, Nothing)
 
-bitsToIndex (Branch size left right) (True:bs) =
-    case bitsToIndex right bs of
+bitsToIndex subTree (Branch size left right) (True:bs) =
+    case bitsToIndex subTree right bs of
       (index, Just (right', bs')) -> (index + sizeOf left, Just (Branch (size+1) left right', bs'))
       (index, Nothing)            -> (index + sizeOf left, Nothing)
    
 
-indexToBits Leaf index = ([], newBranch)
+indexToBits subTree  Leaf index = ([], subTree)
 
-indexToBits (Branch size left right) index = 
+indexToBits subTree (Branch size left right) index = 
        if index >= sizeOf left
-       then let (bs, right') = indexToBits right (index - sizeOf left)
+       then let (bs, right') = indexToBits subTree right (index - sizeOf left)
             in(True : bs, Branch (size+1) left right')
-       else let (bs, left')  = indexToBits left index
+       else let (bs, left')  = indexToBits subTree left index
             in(False : bs, Branch (size+1) left' right)
 
 --does not change tree
@@ -49,6 +71,13 @@ internalIndexToBits (Branch size left right) index =
 
 ---------------------------------------------
 
+-- second argument should initially be 1
+-- returns either  
+-- (x, Just bs)     x in [0, max)
+-- (y, Nothing)     y in [1, max)
+
+prefixCodeToInt 1 _ bs = (0, Just bs)
+
 prefixCodeToInt max n (b:bs) =
     let n' = doubleIf n b
     in if n' >= max
@@ -59,38 +88,73 @@ prefixCodeToInt max n [] = (n, Nothing)
 
 -----------------------------------------------------------
 
-codeToIndices max bs =
+-- second argument should initially be 0
+-- returns either  
+-- (x, Just bs)     x in [0, (base - 1) * max]
+-- (y, Nothing)     y in [0, max)
+
+
+nonbinaryPrefixCodeToInt base 0 _ bs = (0, Just bs)
+
+nonbinaryPrefixCodeToInt base max n (x:xs) = 
+    let n' = base * n + x
+    in if n' >= max
+       then (n' - max, Just bs)
+       else nonbinaryPrefixCodeToInt base max n' bs
+
+nonbinaryPrefixCodeToInt base max n [] = (n, Nothing)
+
+
+-----------------------------------------------------------
+
+codeToIndices incr max bs =
     case prefixCodeToInt max 1 bs of
-      (index, Just bs') -> index : codeToIndices (max + 1) bs'
+      (index, Just bs') -> index : codeToIndices incr (max + incr) bs'
       (index, Nothing)  -> index : []
           
 
-indicesToCode max [] = []
+indicesToCode incr max [] = []
 
-indicesToCode max (n:[]) = natToBits n : []
+indicesToCode incr max (n:[]) = natToBits n : []
 
-indicesToCode max (n:ns) = natToBits (n + max) : indicesToCode (max + 1) ns
+indicesToCode incr max (n:ns) = natToBits (n + max) : indicesToCode incr (max + incr) ns
 
 ------------------------------------------------------
 
-computeIndices tree bs = 
-    case bitsToIndex tree bs of
-      (index, Just (tree', bs')) -> index : computeIndices tree' bs'
+computeIndices subTree tree bs = 
+    case bitsToIndex subTree tree bs of
+      (index, Just (tree', bs')) -> index : computeIndices subTree tree' bs'
       (index, Nothing)           -> index : []
 
 
-translateIndices tree [] = []
+translateIndices subTree tree [] = []
 
-translateIndices tree (n:[]) =
+translateIndices subTree tree (n:[]) =
     internalIndexToBits tree n : []
 
-translateIndices tree (n:ns) =
-    let (bits, tree') = indexToBits tree n
-    in bits : translateIndices tree' ns
+translateIndices subTree tree (n:ns) =
+    let (bits, tree') = indexToBits subTree tree n
+    in bits : translateIndices subTree tree' ns
 
 
 -----------------------------------------------------------------------------------------------     
 
-encode = concat . indicesToCode 2 . computeIndices newBranch
+encode subTree = concat . indicesToCode (sizeOf subTree - 1) 1 . computeIndices subTree Leaf
 
-decode = concat . translateIndices newBranch . codeToIndices 2
+decode subTree = concat . translateIndices subTree Leaf . codeToIndices (sizeOf subTree - 1) 1
+
+depthEncode depth = encode (newSubTree depth)
+
+depthDecode depth = decode (newSubTree depth)
+
+{-
+natEncode max = codeToIndices 0 max . 
+                encode (unbalancedSubTree max) . 
+                concatMap (natToBits . (+) max)
+
+natDecode max = codeToIndices 0 max . 
+                decode (unbalancedSubTree max) . 
+                concatMap (natToBits . (+) max)
+-}
+
+
