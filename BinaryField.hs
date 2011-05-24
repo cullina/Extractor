@@ -4,10 +4,13 @@ module BinaryField
      toInt,
      fromBits,
      fromInt,
+     zeroPoly,
+     onePoly,
      sparsePoly,
      expand,
      polySum,
      polyProduct,
+     timesX,
      polyGCD,
      powerOfX
     )
@@ -18,7 +21,7 @@ import Bit(bitsToInt, intToBits, intWToBits, xor)
 data Poly = Poly {
       polyLen  :: Int 
     , polyBits :: [Bool]
-    }
+    } deriving Eq
 
 instance Show Poly where
     show p@(Poly len pp) =
@@ -43,6 +46,7 @@ zeroPoly len = Poly len []
 onePoly len = Poly len $ (replicate (len - 1) False) ++ [True]
 
 allPolys len = map (fromBits . intWToBits len []) [1..(2 ^ len - 1)]
+
 
 {------}
 
@@ -126,26 +130,18 @@ polyGCD a b =
     else polyGCD b $ polyRem a b
 
 
-allPowersOfX charPoly n =
-    allPowersOfX' charPoly n (onePoly (polyLen charPoly))
-
-allPowersOfX' charPoly 0 x = [x]
-
-allPowersOfX' charPoly n x =
-    x : allPowersOfX' charPoly (n - 1) (timesX charPoly x)
-
 
 powerOfX charPoly n = 
     let square x = polyProduct charPoly x x
         times    = timesX charPoly
-        bits     = intToBits [] n
+        bits     = intToBits n
         one      = onePoly (polyLen charPoly)
     in power square times bits one
 
 powerOfY charPoly n y = 
     let square x = polyProduct charPoly x x
         times    = polyProduct charPoly y
-        bits     = intToBits [] n
+        bits     = intToBits n
         one      = onePoly (polyLen charPoly)
     in power square times bits one
 
