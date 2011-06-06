@@ -50,7 +50,7 @@ recycleUniform' max u bs =
     if maxValue u < max
     then let (b, bs') = getBit bs
          in recycleUniform' max (addBit u b) bs'
-    else case decision u max of
+    else case decision max u of
            (False, u') -> (u', bs)
            (True, u')  -> recycleUniform' max u' bs
 
@@ -98,12 +98,12 @@ uniformFromRecycle max randInt bs =
     
 randomDecision threshold max bs =
     let (randInt, bs') = uniform max bs
-        (d, leftover)  = decision randInt threshold
+        (d, leftover)  = decision threshold randInt
     in (d, leftover, bs')
 
 efficientDecision threshold max randInt bs = 
     let (merged, leftover, bs') = uniformFromRecycle max randInt bs
-        (d, leftover2)          = decision merged threshold
+        (d, leftover2)          = decision threshold merged
         leftover3               = leftover2 `mappend` leftover --preserve bit ordering
     in (d, leftover3, bs')
 
@@ -111,6 +111,6 @@ efficientDecision2 threshold max n@(UnifNat a b) bs =
     let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
         (newInt, bs')                           = uniform stillNeeded bs
         merged                                  = newInt `mappend` n
-        (d, leftover)                          = decision merged (threshold * leftoverSize)
+        (d, leftover)                           = decision (threshold * leftoverSize) merged
     in (d, leftover, bs')
     

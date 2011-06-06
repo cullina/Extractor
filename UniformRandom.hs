@@ -44,7 +44,7 @@ recycleUniform max = rU max mempty
     where rU max u =
               if maxValue u < max
               then NotDone $ \b -> rU max (addBit u b)
-              else case decision u max of
+              else case decision max u of
                     (False, u') -> Done u'
                     (True, u')  -> rU max u'
 
@@ -86,11 +86,14 @@ uniformViaReal max =
               in if max <= denomMinusR
                  then Done (UnifNat q max)
                  else fmap f (biasedBit max denomMinusR) 
-            
+
+                 
+randomDecision threshold max =
+    fmap (decision threshold) (uniform max)
             
 efficientDecision threshold max n@(UnifNat a b) =
     let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
-        d newInt = decision (newInt `mappend` n) (threshold * leftoverSize)
+        d newInt = decision (threshold * leftoverSize) (newInt `mappend` n)
     in fmap d (uniform stillNeeded)
 
     

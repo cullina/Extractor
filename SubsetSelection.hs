@@ -38,7 +38,7 @@ subsetFromInteger n k index =
 subsetFromInteger' n 0 subset index = subset
 
 subsetFromInteger' n k subset index =
-    let (d, leftover) = ratioDecision index (n - k) n
+    let (d, leftover) = ratioDecision (n - k) n index
     in if d
        then subsetFromInteger' (n - 1) (k - 1) ((n - 1) : subset) leftover 
        else subsetFromInteger' (n - 1) k subset leftover

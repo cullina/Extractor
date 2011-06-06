@@ -68,14 +68,14 @@ extractUseful max (UnifNat a b) =
 
 --decisions are made using high order bits
 
-decision (UnifNat a b) threshold = 
+decision threshold (UnifNat a b) = 
     if a >= threshold
     then (True, UnifNat (a - threshold) (b - threshold))
     else (False, UnifNat a threshold)
 
-ratioDecision n@(UnifNat a b) numer denom = 
+ratioDecision numer denom n@(UnifNat a b) = 
     let threshold = (b * numer) `div` denom
-    in decision n threshold
+    in decision threshold n
 
 
 
