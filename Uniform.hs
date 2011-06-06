@@ -2,8 +2,8 @@ module Uniform
     (
      UnifNat(..),
      newUnifNat, 
-     mergeUniforms, 
-     identityUnifNat,
+     mappend, 
+     mempty,
      addBit,
      gcdPlus,
      extractUseful, 
@@ -14,6 +14,7 @@ where
 
 import Bit
 import Bitstream
+import Data.Monoid
 
 data UnifNat a = UnifNat {
       unifValue :: a
@@ -33,10 +34,18 @@ newUnifNat value max =
 
 addBit (UnifNat x y) bit = UnifNat (doubleIf x bit) (2 * y)
 
-mergeUniforms (UnifNat a b) (UnifNat c d) = UnifNat (a * d + c) (b * d)
+bitToUnifNat False = UnifNat 0 2
+bitToUnifNat True  = UnifNat 1 2
 
-identityUnifNat = UnifNat 0 1
+instance (Num a) => Monoid (UnifNat a)  where
+    mappend (UnifNat x a) (UnifNat y b) = UnifNat (x * b + y) (a * b)
+    mempty = UnifNat 0 1
 
+
+exchange (UnifNat x a) (UnifNat y b) = 
+    let (q, r) = quotRem (x * b + y) a
+    in (UnifNat q b, UnifNat r a)
+    
 gcdPlus a b = 
     let c = gcd a b
         d = div a c
