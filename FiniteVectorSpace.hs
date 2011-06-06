@@ -1,3 +1,5 @@
+module FiniteVectorSpace where
+
 hammingDist :: (Eq a) => [a] -> [a] -> Int
 
 hammingDist x y = sum . map (\x -> if x then 0 else 1) $ zipWith (==) x y

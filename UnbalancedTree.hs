@@ -99,8 +99,8 @@ nonbinaryPrefixCodeToInt base 0 _ bs = (0, Just bs)
 nonbinaryPrefixCodeToInt base max n (x:xs) = 
     let n' = base * n + x
     in if n' >= max
-       then (n' - max, Just bs)
-       else nonbinaryPrefixCodeToInt base max n' bs
+       then (n' - max, Just xs)
+       else nonbinaryPrefixCodeToInt base max n' xs
 
 nonbinaryPrefixCodeToInt base max n [] = (n, Nothing)
 

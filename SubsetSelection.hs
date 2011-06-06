@@ -11,6 +11,7 @@ module SubsetSelection
 where
 
 import Uniform
+import UniformGeneration
 import Data.List(foldl')
 import Control.Monad.State
 
@@ -60,7 +61,7 @@ subsetFromBitstream n k bs =
 
 
 
-subsetIncrementallyM n k = State (subsetIncrementally n k)
+subsetIncrementallyM n k = state (subsetIncrementally n k)
 
 subsetIncrementally n k bs = subsetInc n k [] identityUnifNat bs
 

@@ -36,7 +36,7 @@ getBit (Bitstream [] n) = error ("Cannot getBit.  Bitstream is empty after " ++
 
 getBit (Bitstream (b:bs) n) = (b, Bitstream bs (n + 1))
 
-getBitM = State getBit
+getBitM = state getBit
 
 
 mapFst f (x, y) = (f x, y)
@@ -107,7 +107,7 @@ vNUnbias bs = let (b1, bs') = getBit bs
                  then vNUnbias bs''
                  else (b2, bs'')
 
-vNUnbiasM = State vNUnbias
+vNUnbiasM = state vNUnbias
 
 
 vNStream = newBitstream . (generateList vNUnbiasM)
