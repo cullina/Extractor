@@ -38,7 +38,7 @@ chainHash xx =
 pickSubsets numGoodBits bits = 
     let len           = toInteger (length bits)
         sizes         = subsetSizes len numGoodBits
-        picker        = liftM (map (indicesToSubset bits))
+        picker        = liftM (map (getSubset bits))
         randomSubsets = mapM (subsetIncrementallyM len)
     in  picker (randomSubsets sizes)
 

@@ -1,12 +1,11 @@
 module SubsetSelection 
     (
      choose,
-     chooseList,
      subsetFromInteger,
      subsetFromBitstream,
      subsetIncrementally,
      subsetIncrementallyM,
-     indicesToSubset
+     getSubset
     )
 where
 
@@ -25,15 +24,6 @@ choose n k = if (2 * k > n)
 choose' n 0 = 1
 choose' 0 k = 0
 choose' n k = (choose' (n-1) (k-1)) * n `div` k
-
-
-chooseList n k = let (a,b) = chooseList' n k
-                 in a:b
-
-chooseList' n 0 = (1,[])
-chooseList' 0 k = (0, [])
-chooseList' n k = let (a,b) = chooseList' (n-1) (k-1)
-                  in (a * n `div` k, a:b)
 
 
 --Uniform subset selection
@@ -63,18 +53,15 @@ subsetFromBitstream n k bs =
 
 subsetIncrementallyM n k = state (subsetIncrementally n k)
 
-subsetIncrementally n k bs = subsetInc n k [] identityUnifNat bs
+subsetIncrementally n k bs = subsetInc n k [] mempty bs
+    where subsetInc n 0 subset unif bs = (subset, bs)
 
-subsetInc n 0 subset unif bs = (subset, bs)
-
-subsetInc n k subset unif bs = 
-    let g  = gcd n k
-        n' = div n g
-        k' = div k g
-        (d, leftover, bs') = efficientDecision (n' - k') n' unif bs
-    in if d
-       then subsetInc (n - 1) (k - 1) ((n - 1) : subset) leftover bs'
-       else subsetInc (n - 1) k subset leftover bs'
+          subsetInc n k subset unif bs = 
+              let (g, n', k')        = gcdPlus n k
+                  (d, leftover, bs') = efficientDecision (n' - k') n' unif bs
+              in if d
+                 then subsetInc (n - 1) (k - 1) ((n - 1) : subset) leftover bs'
+                 else subsetInc (n - 1) k subset leftover bs'
         
         
 
@@ -93,18 +80,16 @@ subsetToIndex' (index, max) n k (x:xs) =
 
 
 
+subsetToBitList subset = marker 0 subset
+    where marker n [] = []
+          marker n (k:ks) = 
+              if n == k
+              then True  : marker (n + 1) ks
+              else False : marker (n + 1) (k:ks)
+    
 -- index list to subset
 
 
-indicesToSubset set indices = 
-    let maxIndex = length set - 1                                           
-        (a,b,c)  = foldl' picker (0, indices, []) set
-    in c 
-
-picker x@(n, [], picked) elem = x
-
-picker (n, k:ks, picked) elem = 
-    if n == k
-    then (n + 1, ks, elem:picked)
-    else (n + 1, k:ks, picked)
+getSubset set = 
+    map fst . filter snd . zip set . subsetToBitList
 
