@@ -7,6 +7,8 @@ import RandomValue
 
 -- Implement some of the algorithms from Uniform using the new type
 
+uniform = recycleUniform
+
 --simple rejection sampling
 rejectUniform max = 
     composeRValues (rU max) (popPush (maxInBits max) [])
@@ -25,7 +27,7 @@ fastRejectUniform max =
               if m
               then if b
                    then fRU mib ms (b:xs)   {- append and continue -}
-                   else popPush ms (b:xs)                  {- append, continue without further checks -}
+                   else popPush ms (b:xs)   {- append, continue without further checks -}
               else if b
                    then fRU mib mib []      {- discard and restart -}
                    else fRU mib ms (b:xs)   {- append and continue -}
@@ -38,7 +40,7 @@ popPush (m:ms) xs = NotDone $ \b -> popPush ms (b:xs)
 
 
 --recycle rejected portion of interval
-recycleUniform max = rU max identityUnifNat
+recycleUniform max = rU max mempty
     where rU max u =
               if maxValue u < max
               then NotDone $ \b -> rU max (addBit u b)
@@ -85,6 +87,15 @@ uniformViaReal max =
                  then Done (UnifNat q max)
                  else fmap f (biasedBit max denomMinusR) 
             
+            
+efficientDecision threshold max n@(UnifNat a b) =
+    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
+        d newInt = decision (newInt `mappend` n) (threshold * leftoverSize)
+    in fmap d (uniform stillNeeded)
+
+    
+    
+    
 vnUnbias :: RValue Bool Bool
             
 vnUnbias = g Nothing 
