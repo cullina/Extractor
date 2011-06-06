@@ -48,7 +48,7 @@ Library
   Exposed-modules:     UniversalHash, UniformRandom, UniformGeneration, Uniform, UnbalancedTree, SubsetSelection, Sample, RandomValue, PrimitivePoly, Prime, PrefixCode, Markov, Levenshtein, LempelZiv, Histogram, FiniteVectorSpace, Fibonacci, Distribution, Bitstream, Bit, BinaryTree, BinaryFieldTransform, BinaryField
   
   -- Packages needed in order to build this package.
-  Build-depends:  base >= 2.0, mtl, random
+  Build-depends:  base >= 4.0, mtl >= 2, random >= 1
   
   -- Modules not exported by this package.
   -- Other-modules:       
