@@ -44,7 +44,7 @@ popPush (m:ms) xs bs =
 
 
 --recycle rejected portion of interval
-recycleUniform max bs = recycleUniform' max identityUnifNat bs
+recycleUniform max bs = recycleUniform' max mempty bs
 
 recycleUniform' max u bs =
     if maxValue u < max
@@ -90,14 +90,9 @@ uniformViaReal max bs =
 uniformFromRecycle max randInt bs = 
     let (useful, stillNeeded, leftover) = extractUseful max randInt
         (newInt, bs')                   = uniform stillNeeded bs
-        merged                          = mergeUniforms newInt useful
+        merged                          = newInt `mappend` useful
     in (merged, leftover, bs')   
 
-uniformFromRecycle2 max n@(UnifNat a b) bs =
-    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
-        (newInt, bs')                           = uniform stillNeeded bs
-        merged                                  = mergeUniforms newInt n
-    in (merged, leftoverSize, bs')
 
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
     
@@ -109,10 +104,13 @@ randomDecision threshold max bs =
 efficientDecision threshold max randInt bs = 
     let (merged, leftover, bs') = uniformFromRecycle max randInt bs
         (d, leftover2)          = decision merged threshold
-        leftover3               = mergeUniforms leftover2 leftover --preserve bit ordering
+        leftover3               = leftover2 `mappend` leftover --preserve bit ordering
     in (d, leftover3, bs')
 
-efficientDecision2 threshold max randInt bs =
-    let (merged, leftover, bs') = uniformFromRecycle2 max randInt bs
-        (d, leftover2)          = decision merged (threshold * leftover)
-    in (d, leftover2, bs')
+efficientDecision2 threshold max n@(UnifNat a b) bs =
+    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
+        (newInt, bs')                           = uniform stillNeeded bs
+        merged                                  = newInt `mappend` n
+        (d, leftover)                          = decision merged (threshold * leftoverSize)
+    in (d, leftover, bs')
+    
