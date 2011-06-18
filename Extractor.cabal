@@ -35,6 +35,7 @@ Category:            Math
 
 Build-type:          Simple
 
+
 -- Extra files to be distributed with the package, such as examples or
 -- a README.
 -- Extra-source-files:  
@@ -43,12 +44,16 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 
+
 Library
   -- Modules exported by the library.
   Exposed-modules:     UniversalHash, UniformRandom, UniformGeneration, Uniform, UnbalancedTree, SubsetSelection, Sample, RandomValue, PrimitivePoly, Prime, PrefixCode, Markov, Levenshtein, LempelZiv, Histogram, FiniteVectorSpace, Fibonacci, Distribution, Bitstream, Bit, BinaryTree, BinaryFieldTransform, BinaryField
   
   -- Packages needed in order to build this package.
   Build-depends:  base >= 4.0, mtl >= 2, random >= 1
+
+    
+  hs-source-dirs:  src
   
   -- Modules not exported by this package.
   -- Other-modules:       
