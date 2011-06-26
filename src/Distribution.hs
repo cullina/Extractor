@@ -26,12 +26,10 @@ halfInterval (Interval low high denom) False =
     Interval (2*low) (low + high) (2*denom)
 
 
-compareInterval (Interval l h d) (p, q) = 
-    if q * h <= p * d
-    then (Interval (q * l) (q * h) (p * d), LT)
-    else if q * l >= p * d
-         then (Interval (q * l - p * d) (q * h - p * d) (q * d - p * d), GT)
-         else (Interval l h d, EQ)
+compareInterval (Interval l h d) (p, q)
+  | q * h <= p * d  = (Interval (q * l) (q * h) (p * d), LT)
+  | q * l >= p * d  = (Interval (q * l - p * d) (q * h - p * d) (q * d - p * d), GT)
+  | otherwise       = (Interval l h d, EQ)
 
 
 getValue d = getValue' d newInterval

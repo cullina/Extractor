@@ -12,7 +12,7 @@ data Markov a = Markov (RState a) (a -> RState a)
 convertToMarkov :: (a -> RState a) -> MarkovState a
 
 convertToMarkov transition =  
-    state (duplicateFst . (uncurry (runState . transition)))
+    state $ duplicateFst . uncurry (runState . transition)
         where duplicateFst (x,s) = (x,(x,s))
 
 

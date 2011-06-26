@@ -70,7 +70,7 @@ normalizeFib bs =
 removeLongRuns False True True bs = 
     removeLongRuns True False False bs
     
-removeLongRuns b1 b2 b3 [] = b1 : b2 : b3 : []
+removeLongRuns b1 b2 b3 [] = [b1, b2, b3]
 
 removeLongRuns b1 b2 b3 (b4:bs) = b1 : removeLongRuns b2 b3 b4 bs
 

@@ -37,13 +37,13 @@ toInt (Poly len pp) = bitsToInt $ expand len pp
 
 fromBits bits = Poly (length bits) bits
 
-fromInt len = fromBits . (intWToBits len [])
+fromInt len = fromBits . intWToBits len []
 
 sparsePoly len = fromInt len . sum . map (2 ^) 
 
 zeroPoly len = Poly len []
 
-onePoly len = Poly len $ (replicate (len - 1) False) ++ [True]
+onePoly len = Poly len $ replicate (len - 1) False ++ [True]
 
 allPolys len = map (fromBits . intWToBits len []) [1..(2 ^ len - 1)]
 
@@ -83,7 +83,7 @@ timesX charPoly p@(Poly l []) = p
 timesX charPoly (Poly l (a:as)) = 
     if a
     then polySum charPoly (Poly l as)
-    else (Poly l as)
+    else Poly l as
 
 
 polySum (Poly la pa) (Poly lb pb) = 

@@ -22,9 +22,9 @@ allReducedVectors max length = map (0:) $ allVectors max (length - 1)
 allVectors max 0 = [[]]
 
 allVectors max length = let shorterVectors = allVectors max (length - 1)
-                        in concat $ map (\x -> map (x:) shorterVectors) [0..max-1]
+                        in concatMap (\x -> map (x:) shorterVectors) [0..max-1]
 
-greedyMaximalSet f candidates = greedyMaximalSet' f [] candidates
+greedyMaximalSet f = greedyMaximalSet' f []
 
 greedyMaximalSet' f set [] = set
 

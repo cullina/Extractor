@@ -7,6 +7,7 @@ module Histogram
     ) where
 
 import Data.List(foldl', transpose)
+import Data.Maybe(fromMaybe)
 import Bit
 import BinaryTree
 
@@ -35,7 +36,7 @@ incNode (Just n) = Just (n+1)
 
 treeHistogramUpdate tree = modifyNode incNode tree . natToBits . (+) 1 
 
-treeHistogram = map (maybe 0 id) . flatten . foldl' treeHistogramUpdate Leaf
+treeHistogram = map (fromMaybe 0) . flatten . foldl' treeHistogramUpdate Leaf
 
 ----------------
 

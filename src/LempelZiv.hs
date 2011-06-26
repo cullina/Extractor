@@ -23,13 +23,13 @@ parse n (Branch x l r) _ (b:bs) =
             in (Branch x l' r, chunk', bs')
 
 
-completeParse p bs = completeParse' p 1 (newNode 0) bs
+completeParse p = completeParse' p 1 (newNode 0)
 
 completeParse' p n tree [] = []
 
 completeParse' p n tree bs = 
     let (tree', chunk, bs') = p n tree (TerminalChunk Nothing) bs
-    in chunk:(completeParse' p (n+1) tree' bs')
+    in chunk : completeParse' p (n+1) tree' bs'
 
 
 bitsNeeded = bitsNeeded' 1 1 0
@@ -40,18 +40,18 @@ bitsNeeded' n m logM =
            else bitsNeeded' (n+1) (2*m) (logM+1)                      
 
 
-serialize cs = serialize' bitsNeeded cs
+serialize = serialize' bitsNeeded
 
 serialize' _ [] = []
 
-serialize' (m:ms) ((TerminalChunk (Just k)):cs) =
+serialize' (m:ms) (TerminalChunk (Just k):cs) =
     intWToBits m [] k ++ serialize' ms cs
 
-serialize' (m:ms) ((Chunk (Just k) b):cs) =
+serialize' (m:ms) (Chunk (Just k) b:cs) =
     intWToBits m [] k ++ b : serialize' ms cs
        
 
-deserialize bs = deserialize' bitsNeeded bs
+deserialize = deserialize' bitsNeeded
 
 deserialize' (m:ms) bs =
     let (k, bs')    = splitAt m bs
@@ -91,7 +91,7 @@ parse2 n (Branch x l r) _ (b:bs) =
             in (Branch x l' r, chunk', bs')
 
 
-deserialize2 bs = deserialize2' (append ([], Leaf) (False, False)) bitsNeeded bs
+deserialize2 = deserialize2' (append ([], Leaf) (False, False)) bitsNeeded
 
 deserialize2' t (m:ms) [] = []
 

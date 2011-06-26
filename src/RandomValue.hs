@@ -11,10 +11,10 @@ instance Functor (RValue b) where
     fmap f (NotDone g) = NotDone $ \b -> fmap f (g b)
 
 instance Monad (RValue b) where 
-    return x = Done x
+    return = Done
     
     (Done x)    >>= g = g x
-    (NotDone f) >>= g = NotDone $ \b -> (f b) >>= g  
+    (NotDone f) >>= g = NotDone $ \b -> f b >>= g  
     
 useBitstream (Done x) bs = (x, bs)
 
@@ -22,7 +22,7 @@ useBitstream (NotDone f) bs =
     let (b, bs') = getBit bs
     in useBitstream (f b) bs'
     
-composeRValues :: (RValue b c) -> (RValue a b) -> (RValue a c)
+composeRValues :: RValue b c -> RValue a b -> RValue a c
     
 composeRValues rx ry = cRV ry rx ry
     where cRV ry (Done x)    _           = Done x

@@ -9,7 +9,7 @@ import Uniform
 uniform = recycleUniform
 
 --simple rejection sampling
-rejectUniform max bs = rejectUniform' max (maxInBits max) bs
+rejectUniform max = rejectUniform' max (maxInBits max)
 
 rejectUniform' max mib bs = 
     let (x, bs') = popPush mib [] bs
@@ -44,7 +44,7 @@ popPush (m:ms) xs bs =
 
 
 --recycle rejected portion of interval
-recycleUniform max bs = recycleUniform' max mempty bs
+recycleUniform max = recycleUniform' max mempty
 
 recycleUniform' max u bs =
     if maxValue u < max

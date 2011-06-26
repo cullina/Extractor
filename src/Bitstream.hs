@@ -110,4 +110,4 @@ vNUnbias bs = let (b1, bs') = getBit bs
 vNUnbiasM = state vNUnbias
 
 
-vNStream = newBitstream . (generateList vNUnbiasM)
+vNStream = newBitstream . generateList vNUnbiasM

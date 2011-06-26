@@ -73,7 +73,7 @@ biasedBit den num = NotDone $ \b ->
 -- r + max < denom
 
 uniformViaReal max = 
-    (uVR max denom) =<< (popPush mib [])
+    uVR max denom =<< popPush mib []
     where mib      = maxInBits max
           denom    = 2 ^ length mib                    
           uVR max denom x = 
@@ -81,8 +81,8 @@ uniformViaReal max =
                   (q, r)   = quotRem (try * max) denom 
                   denomMinusR = denom - r
                   f b = if b
-                        then (UnifNat (q+1) max)
-                        else (UnifNat  q    max)
+                        then UnifNat (q+1) max
+                        else UnifNat  q    max
               in if max <= denomMinusR
                  then Done (UnifNat q max)
                  else fmap f (biasedBit max denomMinusR) 

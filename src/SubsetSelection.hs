@@ -17,13 +17,13 @@ import Control.Monad.State
 
 -- Compute binomial coefficients
 
-choose n k = if (2 * k > n)
+choose n k = if 2 * k > n
              then choose' n (n - k)
              else choose' n k
 
 choose' n 0 = 1
 choose' 0 k = 0
-choose' n k = (choose' (n-1) (k-1)) * n `div` k
+choose' n k = choose' (n-1) (k-1) * n `div` k
 
 
 --Uniform subset selection
@@ -67,7 +67,7 @@ subsetIncrementally n k bs = subsetInc n k [] mempty bs
 
 --
 
-subsetToIndex subset = subsetToIndex' (0, 1) 0 0 subset
+subsetToIndex = subsetToIndex' (0, 1) 0 0
 
 subsetToIndex' index n k [] = index
 

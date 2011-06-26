@@ -19,7 +19,7 @@ addFiller [] leaves = []
 
 addFiller (k:[]) leaves = []
 
-addFiller (k:ks) leaves@((Leaf f x):ls) = 
+addFiller (k:ks) leaves@(Leaf f x:ls) = 
     let filler = rem (length ls) (length ks)
     in replicate filler (Leaf 0 x) ++ leaves
 
@@ -30,12 +30,12 @@ takeMin ([], q) =
         Nothing      -> (Nothing, ([], q))
         Just (y, q') -> (Just y, ([], q'))
 
-takeMin ((x:xs), q) =
+takeMin (x:xs, q) =
     case peek q of 
         Nothing           -> (Just x, (xs, q))
         Just (y, q', yq') -> if freq x <= freq y
                              then (Just x, (xs, yq'))
-                             else (Just y, ((x:xs), q'))
+                             else (Just y, (x:xs, q'))
 
 bothEmpty ([], q) = Queue.empty q
 
