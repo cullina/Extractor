@@ -24,7 +24,7 @@ intToFibBits n = toFibBits (reverse (takeWhile (<= n) fibs)) n
 
 natToFibBits n = tail $ toFibBits (reverse (takeWhile (<= n) fibs)) n
 
-toFibBits [] n = []
+toFibBits [] _ = []
 
 toFibBits (f:fs) n =
     if f <= n
@@ -57,6 +57,7 @@ translate (False:(True:bs)) = True : translate bs
 
 translate (False:bs) = False : translate bs
 
+translate (True : _) = error "Initial or consecutive Trues." 
 
 {----}
 
@@ -85,8 +86,9 @@ removePairs b1 b2 (b3:bs) =
       (b2',  b3',  bs') -> (b1,   b2',   b3'   : bs')
 
 
-incrementFib' b1 False [] = (b1, True, [])
-incrementFib' b1 True [] = (True, False, [])
+incrementFib' True  True  _  = error "Consecutive Trues."
+incrementFib' b1    False [] = (b1, True, [])
+incrementFib' False True  [] = (True, False, [])
 
 incrementFib' b1 b2 (b3:bs) =
     case incrementFib' b2 b3 bs of
@@ -98,7 +100,4 @@ incrementFib bs =
     in pruneZeroes $ b1 : b2 : bs'
 
 
-pruneZeroes (False : bs) = 
-    pruneZeroes bs
-
-pruneZeroes bs = bs
+pruneZeroes = dropWhile not
