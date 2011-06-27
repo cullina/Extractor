@@ -1,7 +1,7 @@
 module Fibonacci where
 
 import Data.List(foldl')
-
+import Bit(pruneZeroes)
 
 f = False
 t = True
@@ -100,4 +100,3 @@ incrementFib bs =
     in pruneZeroes $ b1 : b2 : bs'
 
 
-pruneZeroes = dropWhile not

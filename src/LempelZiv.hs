@@ -12,7 +12,7 @@ data Chunk a = Chunk a Bool |
 
 parse n Leaf chunk bs = (newNode n, chunk, bs)
 
-parse n t@(Branch x l r) _ [] = (t, TerminalChunk x, [])
+parse _ t@(Branch x _ _) _ [] = (t, TerminalChunk x, [])
 
 parse n (Branch x l r) _ (b:bs) =
     let chunk = Chunk x b
@@ -25,7 +25,7 @@ parse n (Branch x l r) _ (b:bs) =
 
 completeParse p = completeParse' p 1 (newNode 0)
 
-completeParse' p n tree [] = []
+completeParse' _ _ _ [] = []
 
 completeParse' p n tree bs = 
     let (tree', chunk, bs') = p n tree (TerminalChunk Nothing) bs
@@ -40,16 +40,14 @@ bitsNeeded' n m logM =
            else bitsNeeded' (n+1) (2*m) (logM+1)                      
 
 
-serialize = serialize' bitsNeeded
+serialize = concat . map serialize' . zip bitsNeeded
 
-serialize' _ [] = []
+serialize' (m, TerminalChunk (Just k)) = intWToBits m [] k
 
-serialize' (m:ms) (TerminalChunk (Just k):cs) =
-    intWToBits m [] k ++ serialize' ms cs
+serialize' (m, Chunk (Just k) b) = intWToBits m [] k ++ [b]
 
-serialize' (m:ms) (Chunk (Just k) b:cs) =
-    intWToBits m [] k ++ b : serialize' ms cs
-       
+serialize' _ = error "Chunk contained Nothing."       
+
 
 deserialize = deserialize' bitsNeeded
 
@@ -59,7 +57,10 @@ deserialize' (m:ms) bs =
          []       -> TerminalChunk k : []
          (b:bs'') -> Chunk k b : deserialize' ms bs''
 
-translate tree bs Nothing = bs
+deserialize' [] _ = error "List of split sizes is too short."
+
+
+translate _    bs Nothing = bs
 
 translate tree bs (Just (TerminalChunk k)) = 
     translate tree bs $ safeGetValue tree k
@@ -70,7 +71,7 @@ translate tree bs (Just (Chunk k b)) =
 
 {-----------------------------}
 
-parse2 n t chunk [] = 
+parse2 _ t chunk [] = 
     case t of
       Branch x Leaf           Leaf           -> (t, TerminalChunk x, [])
       Branch x (Branch _ _ _) (Branch _ _ _) -> (t, TerminalChunk x, [])
@@ -93,7 +94,7 @@ parse2 n (Branch x l r) _ (b:bs) =
 
 deserialize2 = deserialize2' (append ([], Leaf) (False, False)) bitsNeeded
 
-deserialize2' t (m:ms) [] = []
+deserialize2' _ (_:_)  [] = []
 
 deserialize2' t (m:ms) bs =
     let (k, bs')   = splitAt m bs
@@ -101,20 +102,22 @@ deserialize2' t (m:ms) bs =
         inferedBit = inferOtherChild $ safeGetValue (snd t) k'
         t'         = append t (False, False)
     in case (inferedBit, bs') of
-         (Just iB, b:[])   -> Chunk k b : []
+         (Just _, b:[])   -> Chunk k b : []
          (Just iB, _)      -> Chunk k iB : deserialize2' (markChild iB t' k') ms bs'
          (Nothing, [])     -> TerminalChunk k : []
          (Nothing, b:bs'') -> Chunk k b : deserialize2' (markChild b t' k') ms bs''
 
+deserialize2' _ [] _ = error "List of split sizes is too short."
 
 
 markChild b (n, tree) k 
-    = (n, modifyNode (markChild' b) tree (stripPrefixBits k))
+    = (n, modifyNode (markChild' b) tree (pruneZeroes k))
 
 markChild' True  (Just (b, _)) = Just (b, True)
 
 markChild' False (Just (_, b)) = Just (True, b)
     
+markChild' _ Nothing = error "Cannot mark the child of a leaf."
 
 
 inferOtherChild (Just (True, False)) = Just True

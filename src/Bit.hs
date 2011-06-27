@@ -9,14 +9,14 @@ module Bit
      maxInBits,
      xor,
      incrementInt,
-     incrementNat
+     incrementNat,
+     incrementFixedWidthInt,
+     pruneZeroes
     )
 where
 
 import Data.List(foldl')
 
-f = False
-t = True
 
 --Utility
 
@@ -52,7 +52,7 @@ toBits bits n =
 
 intWToBits :: (Integral a, Integral b) => a -> [Bool] -> b -> [Bool]
 
-intWToBits 0 bits n = bits
+intWToBits 0 bits _ = bits
 
 intWToBits w bits n = let (q, r) = quotRem n 2
                       in intWToBits (w - 1) ((r == 1) : bits) q
@@ -84,3 +84,4 @@ incrementInt' (b:bs) =
     let (lowBits, carry) = incrementInt' bs
     in (xor b carry : lowBits, (&&) b carry)  
 
+pruneZeroes = dropWhile not

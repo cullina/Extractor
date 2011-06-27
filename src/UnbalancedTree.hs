@@ -38,7 +38,7 @@ unbalancedSubTree' (False:bs) =
 bitsToIndex subTree Leaf bs = 
     (0, Just (subTree, bs))
 
-bitsToIndex subTree (Branch _ _ _) [] = 
+bitsToIndex _subTree (Branch _ _ _) [] = 
     (1, Nothing)
 
 bitsToIndex subTree (Branch size left right) (False:bs) =
@@ -52,7 +52,7 @@ bitsToIndex subTree (Branch size left right) (True:bs) =
       (index, Nothing)            -> (index + sizeOf left, Nothing)
    
 
-indexToBits subTree  Leaf index = ([], subTree)
+indexToBits subTree  Leaf _index = ([], subTree)
 
 indexToBits subTree (Branch size left right) index = 
        if index >= sizeOf left
@@ -64,10 +64,12 @@ indexToBits subTree (Branch size left right) index =
 --does not change tree
 internalIndexToBits _ 1 = []
 
-internalIndexToBits (Branch size left right) index = 
+internalIndexToBits (Branch _ left right) index = 
    if index > sizeOf left
        then True : internalIndexToBits right (index - sizeOf left)
        else False : internalIndexToBits left (index - 1)
+
+internalIndexToBits Leaf _index = error "index is not internal to tree, it is too large."
 
 ---------------------------------------------
 
@@ -76,15 +78,16 @@ internalIndexToBits (Branch size left right) index =
 -- (x, Just bs)     x in [0, max)
 -- (y, Nothing)     y in [1, max)
 
-prefixCodeToInt 1 _ bs = (0, Just bs)
+prefixCodeToInt 1 bs = (0, Just bs)
 
-prefixCodeToInt max n (b:bs) =
-    let n' = doubleIf n b
-    in if n' >= max
-       then (n' - max, Just bs)
-       else prefixCodeToInt max n' bs
+prefixCodeToInt max bs = pCTI max 1 bs where
+    pCTI max n (b:bs) =
+        let n' = doubleIf n b
+        in if n' >= max
+           then (n' - max, Just bs)
+           else pCTI max n' bs
 
-prefixCodeToInt max n [] = (n, Nothing)
+    pCTI _ n [] = (n, Nothing)
 
 -----------------------------------------------------------
 
@@ -94,7 +97,7 @@ prefixCodeToInt max n [] = (n, Nothing)
 -- (y, Nothing)     y in [0, max)
 
 
-nonbinaryPrefixCodeToInt base 0 _ bs = (0, Just bs)
+nonbinaryPrefixCodeToInt _base 0 _ bs = (0, Just bs)
 
 nonbinaryPrefixCodeToInt base max n (x:xs) = 
     let n' = base * n + x
@@ -102,22 +105,22 @@ nonbinaryPrefixCodeToInt base max n (x:xs) =
        then (n' - max, Just xs)
        else nonbinaryPrefixCodeToInt base max n' xs
 
-nonbinaryPrefixCodeToInt base max n [] = (n, Nothing)
+nonbinaryPrefixCodeToInt _base _max n [] = (n, Nothing)
 
 
 -----------------------------------------------------------
 
 codeToIndices incr max bs =
-    case prefixCodeToInt max 1 bs of
+    case prefixCodeToInt max bs of
       (index, Just bs') -> index : codeToIndices incr (max + incr) bs'
       (index, Nothing)  -> index : []
           
 
-indicesToCode incr max [] = []
+indicesToCode _incr _max [] = []
 
-indicesToCode incr max (n:[]) = natToBits n : []
+indicesToCode _incr _max (n:[]) = natToBits n : []
 
-indicesToCode incr max (n:ns) = natToBits (n + max) : indicesToCode incr (max + incr) ns
+indicesToCode incr  max  (n:ns) = natToBits (n + max) : indicesToCode incr (max + incr) ns
 
 ------------------------------------------------------
 
@@ -127,9 +130,9 @@ computeIndices subTree tree bs =
       (index, Nothing)           -> index : []
 
 
-translateIndices subTree tree [] = []
+translateIndices _subTree _tree [] = []
 
-translateIndices subTree tree (n:[]) =
+translateIndices _subTree tree (n:[]) =
     internalIndexToBits tree n : []
 
 translateIndices subTree tree (n:ns) =

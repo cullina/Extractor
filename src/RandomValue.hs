@@ -1,8 +1,7 @@
 module RandomValue where
 
-import Bit
-import Bitstream
-import Uniform
+import Bitstream(getBit)
+
 
 data RValue b a = Done a | NotDone(b -> RValue b a)
 
@@ -25,7 +24,6 @@ useBitstream (NotDone f) bs =
 composeRValues :: RValue b c -> RValue a b -> RValue a c
     
 composeRValues rx ry = cRV ry rx ry
-    where cRV ry (Done x)    _           = Done x
+    where cRV _  (Done x)    _           = Done x
           cRV ry (NotDone f) (Done y)    = cRV ry (f y) ry
           cRV ry (NotDone f) (NotDone g) = NotDone $ \z -> cRV ry (NotDone f) (g z) 
-    

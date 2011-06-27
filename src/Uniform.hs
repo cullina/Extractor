@@ -5,6 +5,8 @@ module Uniform
      mappend, 
      mempty,
      addBit,
+     bitToUnifNat,
+     exchange,
      gcdPlus,
      extractUseful, 
      decision,
@@ -13,7 +15,6 @@ module Uniform
 where
 
 import Bit
-import Bitstream
 import Data.Monoid
 
 data UnifNat a = UnifNat {
@@ -73,31 +74,6 @@ decision threshold (UnifNat a b) =
     then (True, UnifNat (a - threshold) (b - threshold))
     else (False, UnifNat a threshold)
 
-ratioDecision numer denom n@(UnifNat a b) = 
+ratioDecision numer denom n@(UnifNat _ b) = 
     let threshold = (b * numer) `div` denom
     in decision threshold n
-
-
-
--- nonuniform finite support random variables
-{------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
-
-data Weighted a b = Weighted a [(a,b)]
-
-
-newWeighted weights = Weighted (sum (map fst weights)) weights
-
-
-newWeightedInts weights = newWeighted $ zip weights [0..]
-
-
-lookupValue (Weighted total pxs) n =
-    lookupValue' pxs (mod n total)
-
-lookupValue' ((p,x):pxs) n = 
-    if p > n
-    then x
-    else lookupValue' pxs (n-p)
-
-weightedViaUniform unifSource w@(Weighted total weights) bs =
-    mapFst (lookupValue w) $ unifSource total bs

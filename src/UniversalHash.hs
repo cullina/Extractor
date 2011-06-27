@@ -5,7 +5,7 @@ import BinaryField
 import PrimitivePoly
 import SubsetSelection
 import Data.List(foldl')
-import Control.Monad(mapM, replicateM, liftM)
+import Control.Monad(replicateM, liftM)
 
 
 basicHash input aBits bBits xBits = 
@@ -23,10 +23,12 @@ universalHash abBits xBits =
         hashedBits     = basicHash input aBits bBits xBits
     in aBits ++ bBits ++ hashedBits
 
-        
-getSeed (x:xs) = 
+
+getSeed (x:_) = 
     let seedLength  = 2 * length x
     in replicateM seedLength getBitM
+
+getSeed [] = undefined
 
 
 chainHash :: [[Bool]] -> RState [Bool]

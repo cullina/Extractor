@@ -1,7 +1,6 @@
 module UniformRandom where
 
 import Bit
-import Bitstream
 import Uniform
 import RandomValue
 
@@ -35,7 +34,7 @@ fastRejectUniform max =
          
 popPush [] xs = Done xs
 
-popPush (m:ms) xs = NotDone $ \b -> popPush ms (b:xs)
+popPush (_:ms) xs = NotDone $ \b -> popPush ms (b:xs)
 
 
 
@@ -50,7 +49,7 @@ recycleUniform max = rU max mempty
 
 -- False with probability num/den
 
-biasedBit den 0 = Done True
+biasedBit _ 0 = Done True
 
 biasedBit den num = NotDone $ \b ->
     let num' = 2 * num
@@ -91,8 +90,8 @@ uniformViaReal max =
 randomDecision threshold max =
     fmap (decision threshold) (uniform max)
             
-efficientDecision threshold max n@(UnifNat a b) =
-    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
+efficientDecision threshold max n@(UnifNat _ b) =
+    let (_, stillNeeded, leftoverSize) = gcdPlus max b
         d newInt = decision (threshold * leftoverSize) (newInt `mappend` n)
     in fmap d (uniform stillNeeded)
 

@@ -6,13 +6,16 @@ module BinaryField
      fromInt,
      zeroPoly,
      onePoly,
+     allPolys,
      sparsePoly,
      expand,
+     embedPoly,
      polySum,
      polyProduct,
      timesX,
      polyGCD,
-     powerOfX
+     powerOfX,
+     powerOfY
     )
 where
 
@@ -57,8 +60,7 @@ expand len [] = replicate len False
 expand len (p:ps) = p : expand (len - 1) ps
 
 
-prunePoly poly@(Poly l pp) =
-    prunePoly' l pp
+prunePoly (Poly l pp) = prunePoly' l pp
 
 prunePoly' 0 _  = Poly 0 []
 
@@ -78,7 +80,7 @@ embedPoly newLength (Poly length p) =
 
 {-Multiply by x, then reduce by characteristic polynomial -}
 
-timesX charPoly p@(Poly l []) = p
+timesX _charPoly p@(Poly _ []) = p
 
 timesX charPoly (Poly l (a:as)) = 
     if a
@@ -97,13 +99,13 @@ polySum' aa     []     = aa
     
 
 
-polyProduct charPoly@(Poly l p) a@(Poly la pa) b@(Poly lb pb) = 
+polyProduct charPoly@(Poly l _) a@(Poly la _) (Poly lb pb) = 
     if l == la && l == lb
     then polyProduct' charPoly a (expand l pb) (zeroPoly l)
     else error "Polynomial length mismatch."
 
 
-polyProduct' charPoly a [] accum = accum
+polyProduct' _charPoly _ [] accum = accum
 
 polyProduct' charPoly a (b:bs) accum = 
     let accum2 = timesX charPoly accum
@@ -117,7 +119,7 @@ polyRem a b =
     polyRem' (prunePoly a) (prunePoly b)
    
 
-polyRem' a@(Poly la pa) b@(Poly lb pb) =
+polyRem' a@(Poly la _) b@(Poly lb pb) =
     if lb > la
     then a
     else let aa = prunePoly $ polySum a $ Poly la pb
@@ -147,7 +149,7 @@ powerOfY charPoly n y =
 
 
 
-power square times [] accum = accum
+power _ _ [] accum = accum
 
 power square times (b:bs) accum =
     let accum2 = square accum 

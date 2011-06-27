@@ -5,13 +5,13 @@ module SubsetSelection
      subsetFromBitstream,
      subsetIncrementally,
      subsetIncrementallyM,
-     getSubset
+     getSubset,
+     subsetToIndex
     )
 where
 
 import Uniform
 import UniformGeneration
-import Data.List(foldl')
 import Control.Monad.State
 
 
@@ -21,8 +21,8 @@ choose n k = if 2 * k > n
              then choose' n (n - k)
              else choose' n k
 
-choose' n 0 = 1
-choose' 0 k = 0
+choose' _ 0 = 1
+choose' 0 _ = 0
 choose' n k = choose' (n-1) (k-1) * n `div` k
 
 
@@ -35,7 +35,7 @@ choose' n k = choose' (n-1) (k-1) * n `div` k
 subsetFromInteger n k index = 
     subsetFromInteger' n k [] (newUnifNat index (choose n k))
 
-subsetFromInteger' n 0 subset index = subset
+subsetFromInteger' _ 0 subset _ = subset
 
 subsetFromInteger' n k subset index =
     let (d, leftover) = ratioDecision (n - k) n index
@@ -54,10 +54,10 @@ subsetFromBitstream n k bs =
 subsetIncrementallyM n k = state (subsetIncrementally n k)
 
 subsetIncrementally n k bs = subsetInc n k [] mempty bs
-    where subsetInc n 0 subset unif bs = (subset, bs)
+    where subsetInc _ 0 subset _    bs = (subset, bs)
 
           subsetInc n k subset unif bs = 
-              let (g, n', k')        = gcdPlus n k
+              let (_, n', k')        = gcdPlus n k
                   (d, leftover, bs') = efficientDecision (n' - k') n' unif bs
               in if d
                  then subsetInc (n - 1) (k - 1) ((n - 1) : subset) leftover bs'
@@ -69,7 +69,7 @@ subsetIncrementally n k bs = subsetInc n k [] mempty bs
 
 subsetToIndex = subsetToIndex' (0, 1) 0 0
 
-subsetToIndex' index n k [] = index
+subsetToIndex' index _ _ [] = index
 
 subsetToIndex' (index, max) n k (x:xs) = 
     if x == n
@@ -81,7 +81,7 @@ subsetToIndex' (index, max) n k (x:xs) =
 
 
 subsetToBitList subset = marker 0 subset
-    where marker n [] = []
+    where marker _ [] = []
           marker n (k:ks) = 
               if n == k
               then True  : marker (n + 1) ks

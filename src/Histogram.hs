@@ -6,7 +6,7 @@ module Histogram
      mean
     ) where
 
-import Data.List(foldl', transpose)
+import Data.List(foldl')
 import Data.Maybe(fromMaybe)
 import Bit
 import BinaryTree

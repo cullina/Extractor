@@ -16,7 +16,9 @@ updateCosts (c1:c2:cs) (match:ms) cost =
        then newCost : updateCosts (c2:cs) ms newCost
        else repeat 0
 
-updateCosts _ [] cost = []
+updateCosts _ [] _ = []
+
+updateCosts _ _ _ = error "Cost list too short."
 
 
 
@@ -36,7 +38,7 @@ slowLDist [] ys = length ys
 
 quadLDist xs ys = quadLDist' xs ys (0,1) (iterate incFst (1,1))
 
-quadLDist' xs [] c costs = last costs
+quadLDist' _ [] _ costs = last costs
 
 quadLDist' xs (y:ys) c costs =
     let matches  = map (==y) xs

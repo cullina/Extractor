@@ -1,7 +1,6 @@
 module Distribution where
 
 import Bitstream
-import Uniform
 
 data Interval = Interval Int Int Int
                 deriving Show

@@ -17,21 +17,21 @@ newNode x = Branch (Just x) Leaf Leaf
 
 value Leaf = Nothing
 
-value (Branch x l r) = x
+value (Branch x _ _) = x
 
 left Leaf = Leaf
 
-left (Branch x l r) = l
+left (Branch _ l _) = l
 
 right Leaf = Leaf
 
-right (Branch x l r) = r
+right (Branch _ _ r) = r
 
 getNode Leaf _ = Leaf
 
-getNode t@(Branch x l r) [] = t
+getNode t@(Branch _ _ _) [] = t
 
-getNode (Branch x l r) (b:bs) = 
+getNode (Branch _ l r) (b:bs) = 
     if b
     then getNode r bs
     else getNode l bs
@@ -39,19 +39,12 @@ getNode (Branch x l r) (b:bs) =
 
 -- Ignores all leading zeros and one leading one, then calls f.
 -- If there is no one, returns Nothing
-ignorePrefixBits f [] = Nothing
+ignorePrefixBits _ [] = Nothing
 
 ignorePrefixBits f (b:bs) = 
     if b
     then f bs
     else ignorePrefixBits f bs
-
-stripPrefixBits [] = []
-
-stripPrefixBits (b:bs) = 
-    if b
-    then bs
-    else stripPrefixBits bs
 
 
 safeGetValue tree = ignorePrefixBits (value . getNode tree)
@@ -86,7 +79,7 @@ getDepth n = concat . getDepth' n
 
 getDepth' :: Int -> BinaryTree a -> [[Maybe a]]
 
-getDepth' 0 t = []
+getDepth' 0 _ = []
 
 getDepth' n t =
     let l = getDepth' (n - 1) $ left t

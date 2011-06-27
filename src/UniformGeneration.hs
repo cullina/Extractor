@@ -38,7 +38,7 @@ fastRejectUniform' mib (m:ms) xs bs =
 
 popPush [] xs bs = (xs, bs)
 
-popPush (m:ms) xs bs = 
+popPush (_:ms) xs bs = 
     let (b, bs') = getBit bs
     in  popPush ms (b:xs) bs'
 
@@ -57,7 +57,7 @@ recycleUniform' max u bs =
 
 -- False with probability num/den
 
-biasedBit den 0 bs = (True, bs)
+biasedBit _ 0 bs = (True, bs)
 
 biasedBit den num bs = 
     let (b, bs') = getBit bs
@@ -107,10 +107,10 @@ efficientDecision threshold max randInt bs =
         leftover3               = leftover2 `mappend` leftover --preserve bit ordering
     in (d, leftover3, bs')
 
-efficientDecision2 threshold max n@(UnifNat a b) bs =
-    let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
-        (newInt, bs')                           = uniform stillNeeded bs
-        merged                                  = newInt `mappend` n
-        (d, leftover)                           = decision (threshold * leftoverSize) merged
+efficientDecision2 threshold max n@(UnifNat _ b) bs =
+    let (_, stillNeeded, leftoverSize) = gcdPlus max b
+        (newInt, bs')                  = uniform stillNeeded bs
+        merged                         = newInt `mappend` n
+        (d, leftover)                  = decision (threshold * leftoverSize) merged
     in (d, leftover, bs')
     

@@ -8,7 +8,7 @@ import SubsetSelection
 -- Check that x generates the whole multiplicative group by testing the order 
 -- where it could produce 1 early.
 
-primitiveTest charPoly@(Poly len pp) =
+primitiveTest charPoly@(Poly len _) =
     let divisors = divisorsOfPowerOf2 len
         powers   = map (toInt . powerOfX charPoly) divisors
     in all (1 /=) powers
@@ -32,7 +32,7 @@ irreducibleTest charPoly@(Poly len pp) =
         fullCharPoly = Poly (len + 1) (True : pp)
     in irreducibleTest' fullCharPoly charPoly x x numIters 
 
-irreducibleTest' fullCharPoly charPoly x y 0 = True
+irreducibleTest' _fullCharPoly _charPoly _ _ 0 = True
 
 irreducibleTest' fullCharPoly charPoly x y i = 
     let newY = polyProduct charPoly y y

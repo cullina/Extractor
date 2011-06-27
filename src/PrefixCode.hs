@@ -22,7 +22,7 @@ fromPrefixCode' [] bs                 = Just ([], bs)
 
 fromPrefixCode' (False:max) bs        = liftM (mapFst (False :)) $ fromPrefixCode' max bs
 
-fromPrefixCode' (True:max) []         = Nothing
+fromPrefixCode' (True:_max) []         = Nothing
 
 fromPrefixCode' (True:max) (True:bs)  = liftM (mapFst (True :)) $ fromPrefixCode' max bs
 
@@ -31,9 +31,9 @@ fromPrefixCode' (True:max) (False:bs) = liftM (mapFst (False :)) $ safeSplitAt m
 
 safeSplitAt [] bs = Just ([], bs)
 
-safeSplitAt (m:ms) [] = Nothing
+safeSplitAt (_:_) [] = Nothing
 
-safeSplitAt (m:ms) (b:bs) = liftM (mapFst (b :)) $ safeSplitAt ms bs
+safeSplitAt (_:ms) (b:bs) = liftM (mapFst (b :)) $ safeSplitAt ms bs
 
 
 mapFst f (x,y) = (f x, y)
