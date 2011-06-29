@@ -1,4 +1,19 @@
-module BinaryTree where
+module BinaryTree
+       (
+         BinaryTree(..),
+         newNode,
+         value,
+         left,
+         right,
+         getNode,
+         safeGetValue,
+         modifyNode,
+         setNode,
+         listToTree,
+         append,
+         flatten,
+         Bit.natToBits
+       ) where
 
 import Bit
 import Data.List(foldl')
@@ -67,10 +82,10 @@ modifyNode f (Branch x l r) (b:bs) =
 
 setNode value = modifyNode (const (Just value))
 
-listToTree xs = snd $ foldl' append ([], Leaf) xs
-
-append (n, tree) x =
-    (incrementNat n, setNode x tree n)
+listToTree xs = 
+  snd $ foldl' append ([], Leaf) xs
+  
+append (n, tree) x = (incrementNat n, setNode x tree n)
 
 
 getDepth :: Int -> BinaryTree a -> [Maybe a]

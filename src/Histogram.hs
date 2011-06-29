@@ -1,14 +1,13 @@
 module Histogram 
-    ( 
-     histogram,
-     treeHistogram,
-     flatten,
-     mean
-    ) where
+       ( 
+         histogram,
+         treeHistogram,
+         flatten,
+         mean
+       ) where
 
 import Data.List(foldl')
 import Data.Maybe(fromMaybe)
-import Bit
 import BinaryTree
 
 

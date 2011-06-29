@@ -1,7 +1,7 @@
 module LempelZiv where
 
 import BinaryTree
-import Bit
+import Bit(intWToBits, incrementInt, pruneZeroes)
 
 
 data Chunk a = Chunk a Bool |
