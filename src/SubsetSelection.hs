@@ -10,7 +10,6 @@ module SubsetSelection
     )
 where
 
-import Uniform
 import UniformGeneration
 import Control.Monad.State
 

@@ -1,4 +1,17 @@
-module UniformRandom where
+module UniformRandom 
+       (
+         uniform,
+         rejectUniform,
+         fastRejectUniform,
+         recycleUniform,
+         biasedBit,
+         uniformViaReal,
+         randomDecision,
+         efficientDecision,
+         vnUnbias,
+         module Uniform,
+         module RandomValue
+       )where
 
 import Bit
 import Uniform

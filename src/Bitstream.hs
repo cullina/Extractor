@@ -8,11 +8,13 @@ module Bitstream
      stdBitstream,
      bitstreamFromInts,
      newBitstream,
-     mapBitstream
+     mapBitstream,
+     useBitstream
     )
 where
 
 import Bit
+import RandomValue
 import System.Random
 import Data.List(foldl', unfoldr)
 import Control.Monad.State
@@ -65,3 +67,11 @@ foldHelper :: (a -> b -> (c, b)) -> ([c], b) -> a -> ([c], b)
 foldHelper f (cs, b) a = 
     let (c, newB) = f a b
     in (c:cs, newB)
+
+{--------}
+
+useBitstream (Done x) bs = (x, bs)
+
+useBitstream (NotDone f) bs = 
+    let (b, bs') = getBit bs
+    in useBitstream (f b) bs'

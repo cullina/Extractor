@@ -2,4 +2,5 @@
 *.hi
 *.hs~
 *.dat
+*.png
 /dist/

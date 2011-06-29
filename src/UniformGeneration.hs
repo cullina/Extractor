@@ -1,4 +1,16 @@
-module UniformGeneration where
+module UniformGeneration  
+       (
+         uniform,
+         rejectUniform,
+         fastRejectUniform,
+         recycleUniform,
+         biasedBit,
+         uniformViaReal,
+         randomDecision,
+         efficientDecision,
+         efficientDecision2,
+         module Uniform
+       )where
 
 import Bit
 import Bitstream
