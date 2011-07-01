@@ -4,6 +4,7 @@ import Bitstream
 import BinaryField
 import PrimitivePoly
 import SubsetSelection
+import SubsetFromBitstream
 import Data.List(foldl')
 import Control.Monad(replicateM, liftM)
 

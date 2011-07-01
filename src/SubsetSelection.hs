@@ -1,18 +1,14 @@
 module SubsetSelection 
-    (
-     choose,
-     subsetFromInteger,
-     subsetFromBitstream,
-     subsetIncrementally,
-     subsetIncrementallyM,
-     getSubset,
-     subsetToIndex
-    )
+       (
+         choose,
+         subsetFromInteger,
+         subsetFromUniform,
+         getSubset,
+         subsetToIndex
+       )
 where
 
-import UniformGeneration
-import Control.Monad.State
-
+import Uniform(newUnifNat, ratioDecision)
 
 -- Compute binomial coefficients
 
@@ -32,7 +28,9 @@ choose' n k = choose' (n-1) (k-1) * n `div` k
 --index ranges from [0 , nCk)
 
 subsetFromInteger n k index = 
-    subsetFromInteger' n k [] (newUnifNat index (choose n k))
+    subsetFromUniform n k (newUnifNat index (choose n k))
+
+subsetFromUniform n k = subsetFromInteger' n k []
 
 subsetFromInteger' _ 0 subset _ = subset
 
@@ -41,28 +39,6 @@ subsetFromInteger' n k subset index =
     in if d
        then subsetFromInteger' (n - 1) (k - 1) ((n - 1) : subset) leftover 
        else subsetFromInteger' (n - 1) k subset leftover
-
-subsetFromBitstream n k bs = 
-    let max          = choose n k
-        (index, bs') = uniform max bs
-        subset       = subsetFromInteger' n k [] index
-    in (subset, bs')
-
-
-
-subsetIncrementallyM n k = state (subsetIncrementally n k)
-
-subsetIncrementally n k bs = subsetInc n k [] mempty bs
-    where subsetInc _ 0 subset _    bs = (subset, bs)
-
-          subsetInc n k subset unif bs = 
-              let (_, n', k')        = gcdPlus n k
-                  (d, leftover, bs') = efficientDecision (n' - k') n' unif bs
-              in if d
-                 then subsetInc (n - 1) (k - 1) ((n - 1) : subset) leftover bs'
-                 else subsetInc (n - 1) k subset leftover bs'
-        
-        
 
 --
 
