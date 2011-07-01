@@ -1,6 +1,6 @@
 module Distribution where
 
-import Bitstream
+import RandomValue
 
 data Interval = Interval Int Int Int
                 deriving Show
@@ -33,14 +33,13 @@ compareInterval (Interval l h d) (p, q)
 
 getValue d = getValue' d newInterval
 
-getValue' (Constant x) _ bs = (x, bs)
+getValue' (Constant x) _  = Done x
 
-getValue' d@(Bernoulli p left right) interval bs =
+getValue' d@(Bernoulli p left right) interval =
     case compareInterval interval p of
-      (newInterval, LT) -> getValue' left newInterval bs
-      (newInterval, GT) -> getValue' right newInterval bs
-      (newInterval, EQ) -> let (b, bs') = getBit bs
-                           in getValue' d (halfInterval newInterval b) bs'
+      (newInterval, LT) -> getValue' left newInterval
+      (newInterval, GT) -> getValue' right newInterval
+      (newInterval, EQ) -> NotDone $ \b -> getValue' d (halfInterval newInterval b)
 
 
 

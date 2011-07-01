@@ -3,14 +3,10 @@ module Sample where
 import Distribution
 import Histogram
 import Bitstream
+import Control.Monad(replicateM)
 
 generateSamples dist n seed = 
     let bs = stdBitstream seed
-        (samples, bs') = generateSamples' dist n [] bs 
-    in (treeHistogram samples, bs')
-
-generateSamples' _    0 samples bs = (samples, bs)
-
-generateSamples' dist n samples bs =
-    let (x, bs') = getValue dist bs
-    in generateSamples' dist (n-1) (x:samples) bs'
+        nDist = replicateM n (getValue dist)
+        (samples, _) = useBitstream nDist bs
+    in treeHistogram samples
