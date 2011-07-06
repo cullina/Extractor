@@ -9,7 +9,8 @@ module Bitstream
      bitstreamFromInts,
      newBitstream,
      mapBitstream,
-     useBitstream
+     useBitstream,
+     useBitstreamM
     )
 where
 
@@ -75,3 +76,8 @@ useBitstream (Done x) bs = (x, bs)
 useBitstream (NotDone f) bs = 
     let (b, bs') = getBit bs
     in useBitstream (f b) bs'
+       
+       
+useBitstreamM :: RValue Bool a -> RState a
+
+useBitstreamM = state . useBitstream
