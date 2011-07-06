@@ -93,8 +93,9 @@ randomDecision threshold max =
             
 
 efficientDecision threshold max n@(UnifNat b _) =
-    let (_, stillNeeded, leftoverSize) = gcdPlus max b
-        d newInt = decision (threshold * leftoverSize) (newInt `mappend` n)
+    let (_, threshold', max')          = gcdPlus threshold max
+        (_, stillNeeded, leftoverSize) = gcdPlus max' b
+        d newInt = decision (threshold' * leftoverSize) (newInt `mappend` n)
     in fmap d (uniform stillNeeded)
 
     

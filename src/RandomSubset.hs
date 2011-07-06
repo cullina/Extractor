@@ -7,13 +7,15 @@ module RandomSubset
 import RandomUniform
 
 
-subsetIncrementally n k = subsetInc n k [] mempty
-    where subsetInc _ 0 subset _    = Done subset
+subsetIncrementally n k = subsetInc n k mempty
+    where subsetInc _ 0 _    = Done []
+          
+          subsetInc n k unif = f =<< efficientDecision (n - k) n unif
+          
+          f (d, leftover) = 
+            if d
+            then (n - 1) <:> subsetInc (n - 1) (k - 1) leftover
+            else subsetInc (n - 1) k leftover
 
-          subsetInc n k subset unif = 
-              f =<< efficientDecision (n' - k') n' unif
-              where (_, n', k')   = gcdPlus n k
-                    f (d, leftover) = 
-                        if d
-                        then subsetInc (n - 1) (k - 1) ((n - 1) : subset) leftover
-                        else subsetInc (n - 1)      k             subset  leftover
+          x <:> xs = liftM (x :) xs 
+          
