@@ -1,13 +1,12 @@
-module UniversalHash where
+module UniversalHashR where
 
-import Bitstream
 import BinaryField
 import PrimitivePoly
-import SubsetSelection
-import RandomValue
+import SubsetSelection(getSubset)
+import RandomValue(useFixedNumber)
 import RandomSubset
 import Data.List(foldl')
-import Control.Monad(replicateM, liftM, liftM2)
+import Control.Monad(liftM, liftM2)
 
 
 basicHash input aBits bBits xBits = 
