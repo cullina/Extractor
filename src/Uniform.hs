@@ -2,6 +2,7 @@ module Uniform
     (
      UnifNat(..),
      newUnifNat, 
+     maybeUnifNat,
      mappend, 
      mempty,
      addBit,
@@ -18,12 +19,17 @@ import Bit
 import Data.Monoid
 
 data UnifNat a = UnifNat {
-      unifValue :: a
-    , maxValue  :: a
+      maxValue :: a
+    , unifValue  :: a
 } deriving Show
 
-newUnifNat value max =
-    UnifNat (mod value max) max
+newUnifNat max value =
+    UnifNat max (mod value max)
+    
+maybeUnifNat max value = 
+  if value < max && value >= 0
+  then Just $ UnifNat max value
+  else Nothing
 
 
 
@@ -33,19 +39,19 @@ newUnifNat value max =
 
 --first argument affects high order bits
 
-addBit (UnifNat x y) bit = UnifNat (doubleIf x bit) (2 * y)
+addBit (UnifNat y x) bit = UnifNat (2 * y) (doubleIf x bit)
 
-bitToUnifNat False = UnifNat 0 2
-bitToUnifNat True  = UnifNat 1 2
+bitToUnifNat False = UnifNat 2 0
+bitToUnifNat True  = UnifNat 2 1
 
 instance (Integral a) => Monoid (UnifNat a)  where
-    mappend (UnifNat x a) (UnifNat y b) = UnifNat (x * b + y) (a * b)
-    mempty = UnifNat 0 1
+    mappend (UnifNat a x) (UnifNat b y) = UnifNat (a * b) (x * b + y)
+    mempty = UnifNat 1 0
 
 
-exchange (UnifNat x a) (UnifNat y b) = 
+exchange (UnifNat a x) (UnifNat b y) = 
     let (q, r) = quotRem (x * b + y) a
-    in (UnifNat q b, UnifNat r a)
+    in (UnifNat b q, UnifNat a r)
     
 gcdPlus a b = 
     let c = gcd a b
@@ -54,11 +60,11 @@ gcdPlus a b =
     in (c, d, e)
 
 --use high order bits
-extractUseful max (UnifNat a b) = 
+extractUseful max (UnifNat b a) = 
     let (usefulSize, stillNeeded, leftoverSize) = gcdPlus max b
         (q, r)                                  = quotRem a leftoverSize
-        useful                                  = UnifNat q usefulSize
-        leftover                                = UnifNat r leftoverSize
+        useful                                  = UnifNat usefulSize q
+        leftover                                = UnifNat leftoverSize r
     in (useful, stillNeeded, leftover)
 
 
@@ -69,11 +75,11 @@ extractUseful max (UnifNat a b) =
 
 --decisions are made using high order bits
 
-decision threshold (UnifNat a b) = 
+decision threshold (UnifNat b a) = 
     if a >= threshold
-    then (True, UnifNat (a - threshold) (b - threshold))
-    else (False, UnifNat a threshold)
+    then (True, UnifNat (b - threshold) (a - threshold))
+    else (False, UnifNat threshold a)
 
-ratioDecision numer denom n@(UnifNat _ b) = 
+ratioDecision numer denom n@(UnifNat b _) = 
     let threshold = (b * numer) `div` denom
     in decision threshold n

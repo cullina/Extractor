@@ -28,7 +28,7 @@ choose' n k = choose' (n-1) (k-1) * n `div` k
 --index ranges from [0 , nCk)
 
 subsetFromInteger n k index = 
-    subsetFromUniform n k (newUnifNat index (choose n k))
+    subsetFromUniform n k (newUnifNat (choose n k) index)
 
 subsetFromUniform n k = subsetFromInteger' n k []
 

@@ -15,19 +15,13 @@ instance Monad (RValue b) where
     (Done x)    >>= g = g x
     (NotDone f) >>= g = NotDone $ \b -> f b >>= g  
     
-composeRValues2 :: RValue b c -> RValue a b -> RValue a c
-    
-composeRValues2 rx ry = cRV ry rx ry
-    where cRV _  (Done x)    _           = Done x
-          cRV ry (NotDone f) (Done y)    = cRV ry (f y) ry
-          cRV ry (NotDone f) (NotDone g) = NotDone $ \z -> cRV ry (NotDone f) (g z) 
-          
+
 composeRValues :: RValue a b -> RValue b c -> RValue a c
 
 composeRValues _ (Done x) = Done x
   
 composeRValues ry (NotDone f) = 
-  (composeRValues2 ry . f) =<< ry
+  (composeRValues ry . f) =<< ry
   
 
 
@@ -37,9 +31,6 @@ arr f = NotDone $ \b -> Done (f b)
 untilSuccess :: RValue b (Maybe a) -> RValue b a
 
 untilSuccess f = maybe (untilSuccess f) Done =<< f 
-  
-untilSuccess2 = composeRValues g where
-  g = NotDone $ \b -> maybe g Done b 
 
 
 useFixedNumber n = replicateM n $ arr id

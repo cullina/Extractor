@@ -27,14 +27,14 @@ rejectUniform' max mib bs =
     let (x, bs') = popPush mib [] bs
         try      = bitsToInt (reverse x)
     in if try < max
-       then (UnifNat try max, bs')
+       then (UnifNat max try, bs')
        else rejectUniform' max mib bs'
 
 --fail fast rejection sampling
 fastRejectUniform max bs = 
     let mib        = maxInBits max
         (out, bs') = fastRejectUniform' mib mib [] bs
-    in (UnifNat (bitsToInt (reverse out)) max, bs')
+    in (UnifNat max (bitsToInt (reverse out)), bs')
 
 fastRejectUniform' _ [] xs bs = (xs, bs)
 
@@ -89,11 +89,11 @@ uniformViaReal max bs =
         try      = bitsToInt (reverse x)
         (q, r)   = quotRem (try * max) denom
     in if r + max <= denom
-       then (UnifNat q max, bs')
+       then (UnifNat max q, bs')
        else let (b, bs'') = biasedBit max (denom - r) bs'
             in if b
-               then (UnifNat (q+1) max, bs'')
-               else (UnifNat  q    max, bs'')
+               then (UnifNat max (q+1), bs'')
+               else (UnifNat max  q   , bs'')
                
                
 -- more uniform generation
@@ -119,7 +119,7 @@ efficientDecision threshold max randInt bs =
         leftover3               = leftover2 `mappend` leftover --preserve bit ordering
     in (d, leftover3, bs')
 
-efficientDecision2 threshold max n@(UnifNat _ b) bs =
+efficientDecision2 threshold max n@(UnifNat b _) bs =
     let (_, stillNeeded, leftoverSize) = gcdPlus max b
         (newInt, bs')                  = uniform stillNeeded bs
         merged                         = newInt `mappend` n

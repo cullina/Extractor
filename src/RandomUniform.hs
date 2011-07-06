@@ -3,7 +3,6 @@ module RandomUniform
          uniform,
          rejectUniform,
          fastRejectUniform,
-         fastRejectUniform2,
          recycleUniform,
          biasedBit,
          uniformViaReal,
@@ -25,45 +24,19 @@ uniform = recycleUniform
 
 --simple rejection sampling
 rejectUniform max = 
-    composeRValues (rU max) (popPush (maxInBits max) [])
-    where rU max = NotDone $ \bs -> 
-              let try = bitsToInt (reverse bs)
-              in if try < max
-                 then Done (UnifNat try max)
-                 else rU max
+    untilSuccess . fmap (maybeUnifNat max . bitsToInt) . pP $ maxInBits max
 
 --fail fast rejection sampling
 fastRejectUniform max = 
-  fmap (flip UnifNat max . bitsToInt . reverse) (fRU mib mib [])
-    where mib               = maxInBits max
-          fRU _   []     xs = Done xs
-          fRU mib (m:ms) xs = NotDone $ \b -> 
-            if m
-            then if b
-                 then fRU mib ms (b:xs)   {- append and continue -}
-                 else popPush ms (b:xs)   {- append, continue without further checks -}
-            else if b
-                 then fRU mib mib []      {- discard and restart -}
-                 else fRU mib ms (b:xs)   {- append and continue -}
-         
-fastRejectUniform2 max = 
-  fmap (flip UnifNat max . bitsToInt) . untilSuccess . attempt $ maxInBits max
+  fmap (UnifNat max . bitsToInt) . untilSuccess . attempt $ maxInBits max
     where b <:> bs = liftM (liftM (b :)) bs
           attempt []     = Done $ Just []
           attempt (m:ms) = NotDone $ \b -> 
-            if m
-            then if b
-                 then b <:> attempt ms    {- append and continue -}
-                 else liftM Just $ pP ms  {- append, continue without further checks -}
-            else if b
-                 then Done Nothing        {- discard and restart -}
-                 else b <:> attempt ms    {- append and continue -}
-          
-         
-popPush [] xs = Done xs
-
-popPush (_:ms) xs = NotDone $ \b -> popPush ms (b:xs)
-
+            case (m, b) of
+              (True,  True ) -> b <:> attempt ms    {- append and continue -}
+              (True,  False) -> liftM Just $ pP ms  {- append, no further checks -}     
+              (False, True ) -> Done Nothing        {- discard and restart -}
+              (False, False) -> b <:> attempt ms    {- append and continue -}
 
 
 --recycle rejected portion of interval
@@ -100,18 +73,18 @@ biasedBit den num = NotDone $ \b ->
 -- r + max < denom
 
 uniformViaReal max = 
-    uVR max denom =<< popPush mib []
+    uVR max denom =<< pP mib
     where mib      = maxInBits max
           denom    = 2 ^ length mib                    
           uVR max denom x = 
-              let try      = bitsToInt (reverse x)     
+              let try      = bitsToInt x
                   (q, r)   = quotRem (try * max) denom 
                   denomMinusR = denom - r
                   f b = if b
-                        then UnifNat (q+1) max
-                        else UnifNat  q    max
+                        then UnifNat max (q+1)
+                        else UnifNat max  q   
               in if max <= denomMinusR
-                 then Done (UnifNat q max)
+                 then Done (UnifNat max q)
                  else fmap f (biasedBit max denomMinusR) 
 
                  
@@ -119,7 +92,7 @@ randomDecision threshold max =
     fmap (decision threshold) (uniform max)
             
 
-efficientDecision threshold max n@(UnifNat _ b) =
+efficientDecision threshold max n@(UnifNat b _) =
     let (_, stillNeeded, leftoverSize) = gcdPlus max b
         d newInt = decision (threshold * leftoverSize) (newInt `mappend` n)
     in fmap d (uniform stillNeeded)
