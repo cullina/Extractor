@@ -1,6 +1,11 @@
-module RandomSubset where
+module RandomSubset 
+       (
+         subsetIncrementally
+       )
+       where
 
-import UniformRandom
+import RandomUniform
+
 
 subsetIncrementally n k = subsetInc n k [] mempty
     where subsetInc _ 0 subset _    = Done subset
