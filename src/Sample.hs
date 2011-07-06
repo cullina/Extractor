@@ -1,12 +1,11 @@
 module Sample where
 
-import Distribution
 import Histogram
-import Bitstream
+import RandomValue
 import Control.Monad(replicateM)
+import System.Random(mkStdGen, randoms)
 
-generateSamples dist n seed = 
-    let bs = stdBitstream seed
-        nDist = replicateM n (getValue dist)
-        (samples, _) = useBitstream nDist bs
-    in treeHistogram samples
+generateSamples rv n seed = 
+    let bs = randoms $ mkStdGen seed
+        nDist = replicateM n rv
+    in treeHistogram . fst $ fromList nDist bs
