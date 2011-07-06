@@ -38,7 +38,7 @@ addBit (UnifNat x y) bit = UnifNat (doubleIf x bit) (2 * y)
 bitToUnifNat False = UnifNat 0 2
 bitToUnifNat True  = UnifNat 1 2
 
-instance (Num a) => Monoid (UnifNat a)  where
+instance (Integral a) => Monoid (UnifNat a)  where
     mappend (UnifNat x a) (UnifNat y b) = UnifNat (x * b + y) (a * b)
     mempty = UnifNat 0 1
 
