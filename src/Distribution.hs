@@ -13,7 +13,11 @@ instance Functor (Distribution i) where
         Bernoulli p (fmap f left) (fmap f right)
 
 
-
+instance Monad (Distribution i) where
+    return = Constant
+    
+    (Constant x)      >>= f = f x
+    (Bernoulli p l r) >>= f = Bernoulli p (l >>= f) (r >>= f)
 
                   
 
