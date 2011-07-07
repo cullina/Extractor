@@ -1,6 +1,6 @@
 module Distribution where
 
-import Util
+import Uniform(gcdPlus)
 
 data Interval a = Interval a a a
                 deriving Show
@@ -39,27 +39,12 @@ compareInterval (Interval l h d) (p, q)
 -- nonuniform finite support random variables
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
-data Weighted a b = Weighted a [(a,b)]
+newWeighted = fst . foldr addElem (Constant undefined, 0)
+  where addElem (x, weight) (dist, totalWeight) =
+          let sum = weight + totalWeight
+              (_, p, q) = gcdPlus weight sum
+          in (Bernoulli (p, q) (Constant x) dist, sum) 
 
-
-newWeighted weights = Weighted (sum (map fst weights)) weights
-
-
-newWeightedInts weights = newWeighted $ zip weights [0..]
-
-
-lookupValue (Weighted total pxs) n =
-    lookupValue' pxs (mod n total)
-
-lookupValue' ((p,x):pxs) n = 
-    if p > n
-    then x
-    else lookupValue' pxs (n-p)
-         
-lookupValue' [] _ = undefined
-
-weightedViaUniform unifSource w@(Weighted total _) =
-    mapFst (lookupValue w) $ unifSource total
     
 
 

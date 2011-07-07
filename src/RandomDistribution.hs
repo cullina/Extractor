@@ -7,8 +7,8 @@ module RandomDistribution
 
 import Distribution
 import RandomValue
-import RandomUniform
-import Util
+import RandomUniform(efficientDecision, mempty)
+import Util(mapFst)
 
 
 splitInterval p interval =
