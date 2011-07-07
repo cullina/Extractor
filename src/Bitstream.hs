@@ -14,6 +14,7 @@ module Bitstream
     )
 where
 
+import Util
 import Bit
 import RandomValue
 import System.Random
@@ -42,8 +43,6 @@ getBit (Bitstream (b:bs) n) = (b, Bitstream bs (n + 1))
 
 getBitM = state getBit
 
-
-mapFst f (x, y) = (f x, y)
 
 
 bitstreamFromInts :: Int -> [Int] -> Bitstream

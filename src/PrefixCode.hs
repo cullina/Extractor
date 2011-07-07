@@ -1,5 +1,6 @@
 module PrefixCode where
 
+import Util
 import Bit
 import Control.Monad(liftM)
 
@@ -36,4 +37,4 @@ safeSplitAt (_:_) [] = Nothing
 safeSplitAt (_:ms) (b:bs) = liftM (mapFst (b :)) $ safeSplitAt ms bs
 
 
-mapFst f (x,y) = (f x, y)
+

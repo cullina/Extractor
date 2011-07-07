@@ -91,11 +91,11 @@ uniformViaReal max =
 randomDecision threshold max =
     fmap (decision threshold) (uniform max)
             
-
-efficientDecision threshold max n@(UnifNat b _) =
-    let (_, threshold', max')          = gcdPlus threshold max
-        (_, stillNeeded, leftoverSize) = gcdPlus max' b
-        d newInt = decision (threshold' * leftoverSize) (newInt `mappend` n)
+-- q' * leftoverSize == b * stillNeeded == maxValue (newInt `mappend` n)
+efficientDecision (p, q)  n@(UnifNat b _) =
+    let (_, p', q')                    = gcdPlus p q
+        (_, stillNeeded, leftoverSize) = gcdPlus q' b
+        d newInt = decision (p' * leftoverSize) (newInt `mappend` n)
     in fmap d (uniform stillNeeded)
 
     

@@ -5,17 +5,13 @@ module RandomSubset
        where
 
 import RandomUniform
+import Control.Monad(liftM)
 
-
-subsetIncrementally n k = subsetInc n k mempty
-    where subsetInc _ 0 _    = Done []
+subsetIncrementally n k = sI n k mempty
+    where sI _ 0 _    = Done []
+          sI n k unif = f =<< efficientDecision (n - k, n) unif
           
-          subsetInc n k unif = f =<< efficientDecision (n - k) n unif
-          
-          f (d, leftover) = 
-            if d
-            then (n - 1) <:> subsetInc (n - 1) (k - 1) leftover
-            else subsetInc (n - 1) k leftover
+          f (True,  leftover) = (n - 1) <:> sI (n - 1) (k - 1) leftover
+          f (False, leftover) = sI (n - 1) k leftover
 
           x <:> xs = liftM (x :) xs 
-          
