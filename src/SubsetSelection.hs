@@ -3,12 +3,14 @@ module SubsetSelection
          choose,
          subsetFromInteger,
          subsetFromUniform,
+         subsetDist,
          getSubset,
          subsetToIndex
        )
 where
 
 import Uniform(newUnifNat, ratioDecision)
+import Distribution
 
 -- Compute binomial coefficients
 
@@ -55,6 +57,15 @@ subsetToIndex' (index, max) n k (x:xs) =
 
 
 
+
+subsetDist _ 0 = Constant []
+
+subsetDist n k = 
+  Bernoulli (k, n) (fmap (n :) (subsetDist (n - 1) (k - 1))) (subsetDist (n - 1) k)
+
+
+-- index list to subset
+
 subsetToBitList subset = marker 0 subset
     where marker _ [] = []
           marker n (k:ks) = 
@@ -62,8 +73,6 @@ subsetToBitList subset = marker 0 subset
               then True  : marker (n + 1) ks
               else False : marker (n + 1) (k:ks)
     
--- index list to subset
-
 
 getSubset set = 
     map fst . filter snd . zip set . subsetToBitList

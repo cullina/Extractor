@@ -1,12 +1,14 @@
 module RandomSubset 
        (
          subsetIncrementally,
+         subsetViaDist,
          module SubsetSelection
        )
        where
 
 import SubsetSelection
 import RandomUniform
+import RandomDistribution
 import Control.Monad(liftM)
 
 subsetIncrementally n k = sI n k mempty
@@ -17,3 +19,5 @@ subsetIncrementally n k = sI n k mempty
           f (False, leftover) = sI (n - 1) k leftover
 
           x <:> xs = liftM (x :) xs 
+
+subsetViaDist n k = uniformMethod $ subsetDist n k
