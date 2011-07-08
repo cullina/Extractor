@@ -15,7 +15,6 @@ module Uniform
     )
 where
 
-import Bit
 import Data.Monoid
 
 data UnifNat a = UnifNat {
@@ -39,7 +38,8 @@ maybeUnifNat max value =
 
 --first argument affects high order bits
 
-addBit (UnifNat y x) bit = UnifNat (2 * y) (doubleIf x bit)
+addBit (UnifNat y x) False = UnifNat (2 * y) (2 * x)
+addBit (UnifNat y x) True  = UnifNat (2 * y) (2 * x + 1)
 
 bitToUnifNat False = UnifNat 2 0
 bitToUnifNat True  = UnifNat 2 1

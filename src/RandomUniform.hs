@@ -13,7 +13,7 @@ module RandomUniform
          module RandomValue
        )where
 
-import Bit
+import Bit(bitsToInt, maxInBits)
 import Uniform
 import RandomValue
 import Control.Monad(liftM)
