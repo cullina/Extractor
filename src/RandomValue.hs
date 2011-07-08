@@ -3,17 +3,17 @@ module RandomValue where
 
 import Control.Monad(replicateM)
 
-data RValue b a = Done a | NotDone (b -> RValue b a)
+data RValue a b = Done b | NotDone (a -> RValue a b)
 
-instance Functor (RValue b) where
+instance Functor (RValue a) where
     fmap f (Done x)    = Done (f x)
-    fmap f (NotDone g) = NotDone $ \b -> fmap f (g b)
+    fmap f (NotDone g) = NotDone $ \a -> fmap f (g a)
 
-instance Monad (RValue b) where 
+instance Monad (RValue a) where 
     return = Done
     
     (Done x)    >>= g = g x
-    (NotDone f) >>= g = NotDone $ \b -> f b >>= g  
+    (NotDone f) >>= g = NotDone $ \a -> f a >>= g  
     
 
 composeRValues :: RValue a b -> RValue b c -> RValue a c
@@ -25,10 +25,10 @@ composeRValues ry (NotDone f) =
   
 
 
-arr f = NotDone $ \b -> Done (f b)
+arr f = NotDone $ \a -> Done (f a)
 
 
-untilSuccess :: RValue b (Maybe a) -> RValue b a
+untilSuccess :: RValue a (Maybe b) -> RValue a b
 
 untilSuccess f = maybe (untilSuccess f) Done =<< f 
 
@@ -38,13 +38,10 @@ useFixedNumber n = replicateM n $ arr id
 pP = mapM (const (arr id))
 
 
-
-fromList (Done x) bs = (x, bs)
-
-fromList (NotDone f) (b:bs) = fromList (f b) bs
-
-fromList (NotDone _) [] = error "Reached end of list."
+fromList (Done x)    as     = (x, as)
+fromList (NotDone f) (a:as) = fromList (f a) as
+fromList (NotDone _) []     = error "Reached end of list."
 
 attachCounter = aC 0
     where aC counter (Done x)    = Done (x, counter)
-          aC counter (NotDone f) = NotDone $ \b -> aC (counter + 1) (f b)
+          aC counter (NotDone f) = NotDone $ \a -> aC (counter + 1) (f a)
