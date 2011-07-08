@@ -9,7 +9,6 @@ import Distribution
 import Interval
 import RandomValue
 import RandomUniform(efficientDecision, mempty)
-import Util(mapFst)
 
 
 splitInterval p interval =
@@ -24,6 +23,8 @@ getValue decision dist = gV (dist, mempty)
         gV (Bernoulli p l r, state) = gV . mapFst (f r l) =<< decision p state
         
         f r l b = if b then r else l
+
+        mapFst f (x, y) = (f x, y)
 
 uniformMethod = getValue efficientDecision
 

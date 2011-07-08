@@ -1,8 +1,7 @@
-module UniversalHashR where
+module UniversalHash where
 
 import BinaryField
 import PrimitivePoly
-import SubsetSelection(getSubset)
 import RandomValue(useFixedNumber)
 import RandomSubset
 import Data.List(foldl')

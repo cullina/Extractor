@@ -1,6 +1,5 @@
 module PrefixCode where
 
-import Util
 import Bit
 import Control.Monad(liftM)
 
@@ -28,6 +27,8 @@ fromPrefixCode' (True:_max) []         = Nothing
 fromPrefixCode' (True:max) (True:bs)  = liftM (mapFst (True :)) $ fromPrefixCode' max bs
 
 fromPrefixCode' (True:max) (False:bs) = liftM (mapFst (False :)) $ safeSplitAt max bs
+
+mapFst f (x, y) = (f x, y)
 
 
 safeSplitAt [] bs = Just ([], bs)
