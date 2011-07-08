@@ -38,9 +38,9 @@ flipSources (NeedB g) = NeedA $ \a -> flipSources (g a)
 
 fromLists (DDone x) as     bs = (x, as, bs)
 fromLists (NeedA f) (a:as) bs = fromLists (f a) as bs
-fromLists (NeedA f) []     _  = error "Reached end of list of A."
+fromLists (NeedA _) []     _  = error "Reached end of list of A."
 fromLists (NeedB f) as (b:bs) = fromLists (f b) as bs
-fromLists (NeedB f) _      [] = error "Reached end of list of B."
+fromLists (NeedB _) _      [] = error "Reached end of list of B."
 
 attachCounters = aC 0 0
   where aC counterA counterB (DDone x) = DDone (x, counterA, counterB)
