@@ -21,8 +21,13 @@ takeRS 0 _          = Done []
 takeRS n (Out rs b) = fmap (b :) (takeRS (n - 1) rs) 
 
 
-
-markov :: (a -> RValue b a) -> RValue b a -> RStream b a
+markov :: (b -> RValue a b) -> RValue a b -> RStream a b
 
 markov trans (Done x) = Out (markov trans (trans x)) x
 markov trans (NotDone f) = In $ \a -> markov trans (f a)
+
+repeatRV :: RValue a b -> RStream a b
+
+repeatRV rV = rRV rV rV
+  where rRV rV (Done x) = Out rV x
+        rRV rV (NotDone f) = In $ \a -> rRV rV (f a) 
