@@ -19,6 +19,7 @@ pipeList (In _)     []     = error "Reached end of list."
 
 takeRS 0 _          = Done []
 takeRS n (Out rs b) = fmap (b :) (takeRS (n - 1) rs) 
+takeRS n (In f)     = NotDone $ \a -> takeRS n (f a)
 
 
 markov :: (b -> RValue a b) -> RValue a b -> RStream a b
@@ -29,5 +30,5 @@ markov trans (NotDone f) = In $ \a -> markov trans (f a)
 repeatRV :: RValue a b -> RStream a b
 
 repeatRV rV = rRV rV rV
-  where rRV rV (Done x) = Out rV x
+  where rRV rV (Done x)    = Out (repeatRV rV) x
         rRV rV (NotDone f) = In $ \a -> rRV rV (f a) 
