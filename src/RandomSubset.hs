@@ -1,9 +1,11 @@
 module RandomSubset 
        (
-         subsetIncrementally
+         subsetIncrementally,
+         module SubsetSelection
        )
        where
 
+import SubsetSelection
 import RandomUniform
 import Control.Monad(liftM)
 
