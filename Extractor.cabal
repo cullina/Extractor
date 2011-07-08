@@ -47,7 +47,7 @@ Cabal-version:       >=1.2
 
 Library
   -- Modules exported by the library.
-  Exposed-modules:     UniversalHashR, UniversalHash, UnbalancedTree, Sample, PrefixCode, Markov, Levenshtein, LempelZiv, FiniteVectorSpace, Fibonacci, BinaryFieldTransform, RandomDistribution
+  Exposed-modules:     UniversalHashR, UniversalHash, UnbalancedTree, Sample, PrefixCode, Levenshtein, LempelZiv, FiniteVectorSpace, Fibonacci, BinaryFieldTransform, RandomDistribution
   
   -- Packages needed in order to build this package.
   Build-depends:  base >= 4.0, mtl >= 2, random >= 1
