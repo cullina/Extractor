@@ -5,12 +5,16 @@ module SubsetSelection
          subsetFromUniform,
          subsetDist,
          getSubset,
-         subsetToIndex
+         subsetToIndex,
+         partitionSubsets,
+         unpartition,
+         unpartitionSubsets
        )
 where
 
 import Uniform(newUnifNat, ratioDecision)
 import Distribution
+import Data.List(partition)
 
 -- Compute binomial coefficients
 
@@ -77,3 +81,17 @@ subsetToBitList subset = marker 0 subset
 getSubset set = 
     map fst . filter snd . zip set . subsetToBitList
 
+partitionSubsets set = 
+    pairMap (map fst) . partition snd . zip set . subsetToBitList
+    
+pairMap f (x, y) = (f x, f y)    
+
+unpartition []         _      _      = []
+unpartition (False:bs) xs     (y:ys) = y : unpartition bs xs ys
+unpartition (False:bs) _      []     = []
+unpartition (True:bs)  (x:xs) ys     = x : unpartition bs xs ys
+unpartition (True:bs)  []     _      = []
+
+
+unpartitionSubsets xs ys subset =
+    unpartition (subsetToBitList subset) xs ys
