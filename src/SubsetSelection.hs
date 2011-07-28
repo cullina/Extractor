@@ -88,9 +88,9 @@ pairMap f (x, y) = (f x, f y)
 
 unpartition []         _      _      = []
 unpartition (False:bs) xs     (y:ys) = y : unpartition bs xs ys
-unpartition (False:bs) _      []     = []
-unpartition (True:bs)  (x:xs) ys     = x : unpartition bs xs ys
-unpartition (True:bs)  []     _      = []
+unpartition (False:_ ) _      []     = []
+unpartition (True: bs) (x:xs) ys     = x : unpartition bs xs ys
+unpartition (True: _ ) []     _      = []
 
 
 unpartitionSubsets xs ys subset =
