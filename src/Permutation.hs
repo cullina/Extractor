@@ -18,19 +18,22 @@ slowPerm f = case split f of
     u : map (\x -> if x >= u then x + 1 else x) (slowPerm us)
   
   
-perm [] = []
-perm us@(UnifNat 1 _ : _) = [0]
-perm us@(UnifNat max _ : _) =
-  let split = div max 2 
-      ds = disect us split
+perm (Falling _ []) = []
+perm (Falling 1 _) = [0]
+perm f =
+  let ds = disectHalf f
       xs = map (+ split) . perm . map snd . filter fst $ ds
       ys = perm . map snd . filter (not . fst) $ ds
   in unpartition (map fst ds) xs ys
 
-disect [] _ = []
-disect (u:us) split = 
-  let (b, v) = decision split u  
-  in (b, v) : disect us (if b then split else (split - 1))
+
+disectHalf f@(Falling m us) = disect f (div m 2)
+
+disect (Falling _ us) split = disect' us split 
+  where disect' [] _ = []
+        disect' (u:us) split = 
+          let (b, v) = decision split u  
+          in (b, v) : disect' us (if b then split else (split - 1))
   
 
 slowUnperm m ps = Falling m $ slowUnperm' m ps where
