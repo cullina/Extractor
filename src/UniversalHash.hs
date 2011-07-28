@@ -5,8 +5,7 @@ import PrimitivePoly
 import RandomValue(useFixedNumber)
 import RandomSubset
 import Data.List(foldl')
-import Control.Monad(liftM, liftM2)
-
+import Control.Applicative
 
 basicHash input aBits bBits xBits = 
     let charPoly = getCharPoly input
@@ -25,7 +24,7 @@ universalHash abBits xBits =
 
 
 pickSubsets len subsetSizes bits = 
-    let randomSubset = liftM (getSubset bits) . subsetIncrementally len
+    let randomSubset = fmap (getSubset bits) . subsetIncrementally len
     in  mapM randomSubset subsetSizes
 
 
@@ -34,7 +33,7 @@ extractor goodBits bits =
         (seedLength, subsetSizes) = computeSubsetSizes goodBits totalBits
         seed                      = useFixedNumber $ fromIntegral seedLength
         subsets                   = pickSubsets totalBits subsetSizes bits
-    in liftM2 (foldl' universalHash) seed subsets
+    in (foldl' universalHash) <$> seed <*> subsets
 
 
 

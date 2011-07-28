@@ -1,13 +1,18 @@
 module RandomValue where
 
 
-import Control.Monad(replicateM)
+import Control.Monad(replicateM, ap)
+import Control.Applicative
 
 data RValue a b = Done b | NotDone (a -> RValue a b)
 
 instance Functor (RValue a) where
     fmap f (Done x)    = Done (f x)
     fmap f (NotDone g) = NotDone $ \a -> fmap f (g a)
+
+instance Applicative (RValue a) where
+    pure = return
+    (<*>) = ap
 
 instance Monad (RValue a) where 
     return = Done
@@ -24,6 +29,12 @@ composeRValues ry (NotDone f) =
   (composeRValues ry . f) =<< ry
   
 
+
+fmapD :: (Functor f) => f (a -> b) -> a -> f b
+
+fmapD r x = fmap ($ x) r 
+
+arr :: (a -> b) -> RValue a b 
 
 arr f = NotDone $ \a -> Done (f a)
 
