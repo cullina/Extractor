@@ -1,20 +1,22 @@
 module SubsetSelection 
        (
-         choose,
-         subsetFromInteger,
-         subsetFromUniform,
-         subsetDist,
-         getSubset,
-         subsetToIndex,
-         partitionSubsets,
-         unpartition,
-         unpartitionSubsets
-       )
-where
+         choose
+       , subsetFromInteger
+       , subsetFromUniform
+       , subsetDist
+       , getSubset
+       , subsetToIndex
+       , partitionSubsets
+       , unpartition
+       , indicesToBitList
+       , bitListToIndices
+       , perm
+       ) where
 
-import Uniform(newUnifNat, ratioDecision)
+import Uniform
 import Distribution
 import Data.List(partition)
+import Data.Ratio((%))
 
 -- Compute binomial coefficients
 
@@ -29,48 +31,79 @@ choose' n k = choose' (n-1) (k-1) * n `div` k
 
 --Uniform subset selection
 
-
-
 --index ranges from [0 , nCk)
 
 subsetFromInteger n k index = 
     subsetFromUniform n k (newUnifNat (choose n k) index)
 
-subsetFromUniform n k = subsetFromInteger' n k []
+subsetFromUniform 0 _ _ = []
 
-subsetFromInteger' _ 0 subset _ = subset
-
-subsetFromInteger' n k subset index =
-    let (d, leftover) = ratioDecision (n - k) n index
-    in if d
-       then subsetFromInteger' (n - 1) (k - 1) ((n - 1) : subset) leftover 
-       else subsetFromInteger' (n - 1) k subset leftover
+subsetFromUniform n k index =
+    let (d, leftover) = ratioDecision (k % n) index
+        k'            = if d then k - 1 else k
+    in d : subsetFromUniform (n - 1) k' leftover
 
 --
+subsetToIndex :: (Integral a) => [Bool] -> UnifNat a
 
-subsetToIndex = subsetToIndex' (0, 1) 0 0
+subsetToIndex = subsetToIndex' mempty 0 0
 
 subsetToIndex' index _ _ [] = index
 
-subsetToIndex' (index, max) n k (x:xs) = 
-    if x == n
-    then let diff = max * (n - k) `div` (k + 1)
-         in subsetToIndex' (index + diff, max + diff) (n + 1) (k + 1) xs
-    else subsetToIndex' (index, max * (n + 1) `div` (n - k + 1)) (n + 1) k (x:xs)
-
-
-
+subsetToIndex' index n k (x:xs) =
+  let (n', k') = if x
+                 then (n + 1, k + 1)
+                 else (n + 1, k)
+  in subsetToIndex' (ratioUndecision (n' % k') (x, index))  n' k' xs
 
 
 subsetDist _ 0 = Constant []
 
 subsetDist n k = 
-  Bernoulli (k, n) (fmap (n :) (subsetDist (n - 1) (k - 1))) (subsetDist (n - 1) k)
+  let left  = fmap (True  :) $ subsetDist (n - 1) (k - 1)
+      right = fmap (False :) $ subsetDist (n - 1) k
+  in Bernoulli (k % n) left right
+
+
+perm :: (Integral a) => [UnifNat a] -> [a]
+
+perm [] = []
+perm [UnifNat 1 0] = [0]
+perm f@(UnifNat m _ : _) =
+  let split = div m 2
+      (bs, xs, ys) = disect f split
+  in unpartition bs (map (split +) (perm xs)) (perm ys)
+
+
+
+disect us split = 
+  let ds = decisions us split
+      f = map fst
+      g = map snd . filter fst
+      h = map snd . filter (not . fst)
+  in (f ds, g ds, h ds)
+
+
+decisions [] _ = []
+decisions (u:us) split = 
+  let (b, v) = decision split u  
+  in (b, v) : decisions us (if b then split else (split - 1))
+
+
+
+
 
 
 -- index list to subset
 
-subsetToBitList subset = marker 0 subset
+getSubset set = 
+    map fst . filter snd . zip set
+
+bitListToIndices :: (Integral a) => [Bool] -> [a]
+bitListToIndices = getSubset [0..]
+
+
+indicesToBitList = marker 0
     where marker _ [] = []
           marker n (k:ks) = 
               if n == k
@@ -78,11 +111,8 @@ subsetToBitList subset = marker 0 subset
               else False : marker (n + 1) (k:ks)
     
 
-getSubset set = 
-    map fst . filter snd . zip set . subsetToBitList
-
 partitionSubsets set = 
-    pairMap (map fst) . partition snd . zip set . subsetToBitList
+    pairMap (map fst) . partition snd . zip set
     
 pairMap f (x, y) = (f x, f y)    
 
@@ -91,7 +121,3 @@ unpartition (False:bs) xs     (y:ys) = y : unpartition bs xs ys
 unpartition (False:_ ) _      []     = []
 unpartition (True: bs) (x:xs) ys     = x : unpartition bs xs ys
 unpartition (True: _ ) []     _      = []
-
-
-unpartitionSubsets xs ys subset =
-    unpartition (subsetToBitList subset) xs ys

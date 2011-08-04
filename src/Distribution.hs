@@ -1,9 +1,11 @@
 module Distribution where
 
-import Uniform(gcdPlus)
+import Data.Ratio
 
-data Distribution i a = Constant a |
-                      Bernoulli (i, i) (Distribution i a) (Distribution i a)
+data Distribution i a = Constant a
+                      | Bernoulli (Ratio i) (Distribution i a) (Distribution i a)
+
+-- Bernoulli is left with probability p
 
 instance Functor (Distribution i) where
     fmap f (Constant x) = 
@@ -24,15 +26,23 @@ instance Monad (Distribution i) where
 -- nonuniform finite support random variables
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
-newWeighted = fst . foldr addElem (Constant undefined, 0)
-  where addElem (x, weight) (dist, totalWeight) =
-          let sum = weight + totalWeight
-              (_, p, q) = gcdPlus weight sum
-          in (Bernoulli (p, q) (Constant x) dist, sum) 
+newWeighted :: (Integral i) => [(a, i)] -> Maybe (Distribution i a)
 
-    
+newWeighted = fmap fst . foldr (maybeMappend mergeWeighted) Nothing . map (Just . mapFst Constant)
+
+maybeMappend f (Just x) (Just y) = Just (f x y)
+maybeMappend _ Nothing x = x
+maybeMappend _ x Nothing = x
+
+mapFst f (x, y) = (f x, y)
+
+mergeWeighted :: (Integral i) => (Distribution i a, i) -> (Distribution i a, i) -> (Distribution i a, i)
+
+mergeWeighted (l, lWeight) (r, rWeight) =
+  let sum       = lWeight + rWeight
+  in (Bernoulli (lWeight % sum) l r, sum)
 
 
 
-geometric (p, q) =
-    Bernoulli (p, q) (fmap (+ 1) (geometric (p,q))) (Constant 0)
+geometric p =
+    Bernoulli p (fmap (+ 1) (geometric p)) (Constant 0)

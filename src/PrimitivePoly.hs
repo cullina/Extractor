@@ -60,7 +60,7 @@ testBalance max list =
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
 smallHalf n k =
-    filter (testBalance n) $ map (subsetFromInteger n k) [0 .. (choose n k - 1)]
+    filter (testBalance n) $ map (bitListToIndices . subsetFromInteger n k) [0 .. (choose n k - 1)]
 
 
 kWeightPoly len k = 

@@ -17,8 +17,10 @@ import Bit(bitsToInt, maxInBits)
 import Uniform
 import RandomValue
 import Control.Monad(liftM)
+import Data.Ratio
 
 -- Implement some of the algorithms from Uniform using the new type
+uniform :: (Integral i) => i -> RValue Bool (UnifNat i)
 
 uniform = recycleUniform
 
@@ -92,10 +94,11 @@ randomDecision threshold max =
     fmap (decision threshold) (uniform max)
             
 -- q' * leftoverSize == b * stillNeeded == maxValue (newInt `mappend` n)
-efficientDecision (p, q)  n@(UnifNat b _) =
-    let (_, p', q')                    = gcdPlus p q
-        (_, stillNeeded, leftoverSize) = gcdPlus q' b
-        d newInt = decision (p' * leftoverSize) (newInt `mappend` n)
+efficientDecision :: (Integral i) => Ratio i -> UnifNat i -> RValue Bool (Bool, UnifNat i)
+
+efficientDecision r n@(UnifNat b _) =
+    let stillNeeded = denominator (r * (b % 1))
+        d newInt = ratioDecision r (newInt `mappend` n)
     in fmap d (uniform stillNeeded)
 
     

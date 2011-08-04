@@ -2,35 +2,36 @@ module Interval where
 
 import Uniform
 import Data.Monoid
+import Data.Ratio
 
-data Interval a = Interval a a a
+data Interval a = Interval (Ratio a) (Ratio a)                
                 deriving Show
 
 
-halfInterval (Interval low high denom) True = 
-    Interval (low + high) (2*high) (2*denom)
+halfInterval (Interval low high) True = 
+    Interval ((low + high) / 2) high
 
-halfInterval (Interval low high denom) False = 
-    Interval (2*low) (low + high) (2*denom)
+halfInterval (Interval low high) False = 
+    Interval low ((low + high) / 2)
 
 
-compareInterval (p, q) (Interval l h d)
-  | q * h <= p * d  = (LT, Interval (q * l) (q * h) (p * d))
-  | q * l >= p * d  = (GT, Interval (q * l - p * d) (q * h - p * d) (q * d - p * d))
-  | otherwise       = (EQ, Interval l h d)
+validate (Interval low high) = 
+  0 <= low && low <= high && high <= 1
+
+compareInterval r (Interval l h)
+  | h <= r    = (LT, Interval (l / r) (h / r))
+  | l >= r    = (GT, Interval ((l - r) / (1 - r)) ((h - r) / (1 - r)))
+  | otherwise = (EQ, Interval l h)
 
 
 instance (Integral a) => Monoid (Interval a) where
   mempty = fromUniform mempty
-  mappend (Interval la ha da) (Interval lb hb db) = 
-    Interval (la * db + (ha - la) * lb) (la * db + (ha - la) * hb) (da * db)
+  mappend (Interval la ha) (Interval lb hb) = 
+    Interval (la + (ha - la) * lb) (la + (ha - la) * hb)
     
     
     
-    
-    
-    
-fromUniform (UnifNat a x) = Interval x (x + 1) a
+fromUniform (UnifNat a x) = Interval (x % a) ((x + 1) % a)
 
 bitToInterval = fromUniform . bitToUnifNat
 
