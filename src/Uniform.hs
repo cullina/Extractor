@@ -91,11 +91,11 @@ ratioDecision r n@(UnifNat b _) =
     let threshold = numerator $ r * (b % 1)    
     in decision threshold n
 
-ratioUndecision r (False, UnifNat b a) = 
+ratioUndecision r (True, UnifNat b a) = 
   let upper = numerator $ (b % 1) * (1 - r) / r
   in UnifNat (b + upper) a
 
-ratioUndecision r (True, UnifNat b a) = 
+ratioUndecision r (False, UnifNat b a) = 
   let lower = numerator $ (b % 1) * r / (1 - r)
   in UnifNat (b + lower) (a + lower)
   
