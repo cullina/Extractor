@@ -15,7 +15,7 @@ module SubsetSelection
 
 import Uniform
 import Distribution
-import Data.List(partition)
+import Data.List(partition, unfoldr)
 import Data.Ratio((%))
 
 -- Compute binomial coefficients
@@ -34,27 +34,25 @@ choose' n k = choose' (n-1) (k-1) * n `div` k
 --index ranges from [0 , nCk)
 
 subsetFromInteger n k index = 
-    subsetFromUniform n k (newUnifNat (choose n k) index)
+    subsetFromUniform (n, k) (newUnifNat (choose n k) index)
 
-subsetFromUniform 0 _ _ = []
 
-subsetFromUniform n k index =
-    let (d, leftover) = ratioDecision (k % n) index
-        k'            = if d then k - 1 else k
-    in d : subsetFromUniform (n - 1) k' leftover
+subsetFromUniform = curry (unfoldr sFU)
+  where sFU ((0, _), _) = Nothing
+        sFU ((n, k), index) = 
+          let (d, leftover) = ratioDecision (k % n) index
+              k'            = if d then k - 1 else k
+          in Just (d, ((n - 1, k'), leftover))
 
 --
-subsetToIndex :: (Integral a) => [Bool] -> UnifNat a
+subsetToIndex :: (Integral a) => [Bool] -> ((a, a), UnifNat a)
 
-subsetToIndex = subsetToIndex' mempty 0 0
-
-subsetToIndex' index _ _ [] = index
-
-subsetToIndex' index n k (x:xs) =
-  let (n', k') = if x
-                 then (n + 1, k + 1)
-                 else (n + 1, k)
-  in subsetToIndex' (ratioUndecision (n' % k') (x, index))  n' k' xs
+subsetToIndex = foldr sTI ((0, 0), mempty)
+  where sTI x ((n, k), i) =
+          let k' = if x then k + 1 else k
+              n' = n + 1
+              i' = ratioUndecision (k' % n') (x, i)
+          in ((n', k'), i')
 
 
 subsetDist _ 0 = Constant []
