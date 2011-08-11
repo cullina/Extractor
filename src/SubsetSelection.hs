@@ -33,10 +33,12 @@ choose' n k = choose' (n-1) (k-1) * n `div` k
 
 --index ranges from [0 , nCk)
 
+
+subsetFromInteger :: (Integral i) => i -> i -> i -> [Bool] 
 subsetFromInteger n k index = 
     subsetFromUniform (n, k) (newUnifNat (choose n k) index)
 
-
+subsetFromUniform :: (Integral i) => (i, i) -> UnifNat i -> [Bool] 
 subsetFromUniform = curry (unfoldr sFU)
   where sFU ((0, _), _) = Nothing
         sFU ((n, k), index) = 

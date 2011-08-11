@@ -42,33 +42,18 @@ irreducibleTest' fullCharPoly charPoly x y i =
     
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
 
--- list ranges from [0 , max) 
 
-splitInHalf list =
-    let (q, r) = quotRem (length list) 2
-        (a, b) = splitAt q list
-        (c, d) = splitAt r b
-    in (a, c, d)
-
-
-testBalance max list = 
-    let (a, b, c) = splitInHalf list
-        folded    = map (2 *) b ++ zipWith (+) (reverse a) c
-    in folded <= repeat (max - 1)
-
-
-{------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
-
+smallHalf :: (Integral i) => i -> i -> [[Bool]]
 smallHalf n k =
-    filter (testBalance n) $ map (bitListToIndices . subsetFromInteger n k) [0 .. (choose n k - 1)]
+  filter (\xs -> xs >= reverse xs) $ map (subsetFromInteger n k) [0 .. (choose n k - 1)]
+
+kWeightPolys :: (Integral i) => i -> i -> [Poly]
+kWeightPolys len k = 
+    map (fromBits . (True :)) (smallHalf (len - 1) k)
+
+oddWeightPolys :: (Integral i) => i -> [Poly]
+oddWeightPolys len = concatMap (kWeightPolys len) [1, 3 .. len - 1] 
 
 
-kWeightPoly len k = 
-    map (sparsePoly len . (0 :) . map (1 +)) (smallHalf (len - 1) k)
-
-
-oddWeightPolys len = concatMap (kWeightPoly len) [1, 3 .. len - 1] 
-
-getCharPoly :: Int -> Poly
-
+getCharPoly :: (Integral i) => i -> Poly
 getCharPoly = head . filter primitiveTest . filter irreducibleTest . oddWeightPolys

@@ -7,6 +7,8 @@ import RandomSubset
 import Data.List(foldl')
 import Control.Applicative
 
+basicHash :: Int -> [Bool] -> [Bool] -> [Bool] -> [Bool]
+
 basicHash input aBits bBits xBits = 
     let charPoly = getCharPoly input
         a        = Poly input aBits

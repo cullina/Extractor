@@ -7,7 +7,6 @@ module BinaryField
      zeroPoly,
      onePoly,
      allPolys,
-     sparsePoly,
      expand,
      embedPoly,
      polySum,
@@ -41,8 +40,6 @@ toInt (Poly len pp) = bitsToInt $ expand len pp
 fromBits bits = Poly (length bits) bits
 
 fromInt len = fromBits . intWToBits len []
-
-sparsePoly len = fromInt len . sum . map (2 ^) 
 
 zeroPoly len = Poly len []
 
