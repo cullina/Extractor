@@ -19,7 +19,11 @@ instance Monad (RValue a) where
     return = Done
     
     (Done x)    >>= g = g x
-    (NotDone f) >>= g = NotDone $ \a -> f a >>= g  
+    (NotDone f) >>= g = NotDone $ \a -> f a >>= g
+    
+instance (Show b) => Show (RValue a b) where
+  show (Done x) = "Done " ++ show x
+  show (NotDone _) = "NotDone"
     
 
 preMap _ (Done x)    = Done x
@@ -65,12 +69,66 @@ attachCounter = aC 0
 useInput (Done x) = const (Done x)
 useInput (NotDone f) = f
 
-toMaybe (Done x)    = Just x
-toMaybe (NotDone _) = Nothing
+toMaybeD :: RValue a b -> Maybe b
+toMaybeD (Done x)    = Just x
+toMaybeD (NotDone _) = Nothing
 
-parallel :: [RValue b a] -> RValue [b] [a]
+toMaybeND :: RValue a b -> Maybe (a -> RValue a b)
+toMaybeND (Done _)    = Nothing
+toMaybeND (NotDone f) = Just f
 
-parallel rs =
-  case sequence (map toMaybe rs) of
+allDone = sequence . map toMaybeD
+
+
+untilAllDone :: ([RValue a b] -> RValue a [RValue a b]) -> [RValue a b] -> RValue a [b]
+untilAllDone f rs = 
+  case allDone rs of
     Just xs -> Done xs
-    Nothing -> NotDone $ \bs -> parallel (zipWith useInput rs bs)
+    Nothing -> untilAllDone f =<< f rs
+
+parallel :: [RValue a b] -> RValue a [b]
+parallel = untilAllDone parallelPass
+    
+parallelPass :: [RValue a b] -> RValue a [RValue a b]
+parallelPass [] = Done []
+parallelPass (Done x    : rs) = fmap (Done x :) (parallelPass rs)
+parallelPass (NotDone f : rs) = NotDone $ \a -> fmap (f a :) (parallelPass rs)
+
+
+kWise :: RValue a [a] -> [RValue a b] -> RValue a [b]
+kWise k = fmap findStart $ untilAllDone (genAndUseVector k) . markStart
+
+genAndUseVector k rs = fmap (cyc . useVector rs) k
+
+markStart :: [RValue a b] -> [RValue a (Maybe b)]
+markStart = ((Done Nothing) :) . map (fmap Just)
+
+splitAtNothings :: [Maybe a] -> [[a]]
+splitAtNothings [] = [[]]
+splitAtNothings (Nothing : xs) = [] : splitAtNothings xs
+splitAtNothings (Just x : xs) = mapHead (x :) (splitAtNothings xs)
+
+rotate [] = []
+rotate (x:xs) = xs ++ [x]
+
+findStart :: [Maybe a] -> [a]
+findStart = concat . rotate . splitAtNothings
+
+{-
+loopProcess :: ((a,b) -> Maybe (a,b)) -> b -> [a] -> ([a], [a])
+loopProcess f 
+-}
+
+useVector :: [RValue a b] -> [a] -> ([RValue a b], [RValue a b])
+
+useVector (Done x    : rs) as     = mapFst (Done x :) (useVector rs as)
+useVector (NotDone f : rs) (a:as) = mapFst (f a :) (useVector rs as)
+useVector rs [] = ([], rs)
+useVector [] _  = ([], [])
+
+cyc (xs, ys) = ys ++ xs
+
+mapHead _ [] = []
+mapHead f (x:xs) = f x : xs
+
+mapFst f (x, y) = (f x, y)
