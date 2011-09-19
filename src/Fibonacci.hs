@@ -2,9 +2,14 @@ module Fibonacci where
 
 import Data.List(foldl')
 import Bit(pruneZeroes)
+import Util(mapSnd)
 
 f = False
 t = True
+
+data Fib = Long 
+         | Short 
+         deriving Show
 
 fibBitsToInt = fst . foldl' fibRecIf (0, 0)
 
@@ -49,7 +54,30 @@ splitSegs (True:(True:bs)) = ([], Just bs)
 splitSegs (b:bs) = b `consFst` splitSegs bs
 
 
+parseStream :: [Bool] -> (Bool, [Maybe Fib])
+parseStream = fromClean
+  where fromClean []         = (False, [])
+        fromClean (True:bs)  = fromOne bs
+        fromClean (False:bs) = mapSnd (Just Short :) (fromClean bs)
+        
+        fromOne []           = (True, [])
+        fromOne (True:bs)    = mapSnd (Nothing :) (fromClean bs)
+        fromOne (False:bs)   = mapSnd (Just Long :) (fromClean bs)
+
+writeStream :: Bool -> [Maybe Fib] -> [Bool]
+writeStream b fs = concatMap wS fs ++ seed b
+  where seed True       = [True]
+        seed False      = []
+        wS Nothing      = [True, True]
+        wS (Just Short) = [False]
+        wS (Just Long)  = [True, False]
+    
+
 fibBitsToNatList = map fibBitsToNat . parseSegments
+
+expand = concatMap ex
+  where ex Long  = [False, True]
+        ex Short = [False]
 
 translate [] = []
 
@@ -100,3 +128,18 @@ incrementFib bs =
     in pruneZeroes $ b1 : b2 : bs'
 
 
+incrementFib2 = end . foldr merge ([], EQ)
+  where --inc []      = ([Short], False)
+        --inc [Short] = ([], True)
+        --inc [Long]  = ([Short], True)
+        --inc (f:fs) = merge f (inc fs)
+        
+        merge Short (fs, EQ) = (fs,             LT)
+        merge Long  (fs, EQ) = (Short:fs,       LT)
+        merge f     (fs, GT) = (f:fs,           GT)
+        merge Short (fs, LT) = (Long:fs,        GT)
+        merge Long  (fs, LT) = (Short:Short:fs, LT)
+        --end merges with implicit Long that prefixes everything
+        end (fs, GT) = fs
+        end (fs, EQ) = Short:fs
+        end (fs, LT) = Short:Short:fs 
