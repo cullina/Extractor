@@ -30,29 +30,23 @@ intToFibBits n = toFibBits (reverse (takeWhile (<= n) fibs)) n
 natToFibBits n = tail $ toFibBits (reverse (takeWhile (<= n) fibs)) n
 
 toFibBits [] _ = []
-
-toFibBits (f:fs) n =
+toFibBits [f] n = 
+    if f <= n
+    then True  : toFibBits fs (n - f)
+    else False : toFibBits fs n
+toFibBits (f:_:fs) n =
     if f <= n
     then True  : toFibBits fs (n - f)
     else False : toFibBits fs n
 
+-- F_{n+2} = 1 + sum_{i=0}^n F_i
+
+removeLeadingOne :: [Fib] -> Maybe [Fib]
+removeLeadingOne (Short:fs) = removeLeadingOne fs
+removeLeadingOne (Long:fs)  = Just fs
+removeLeadingOne []         = Nothing
+
 {----}
-
-consFst x (xs,y) = (x:xs, y)
-
-
-parseSegments (True:bs) = [] : parseSegments bs
-
-parseSegments bs = 
-    let (x,y) = splitSegs bs
-    in case y of
-         Nothing -> x :[]
-         Just yy -> x : parseSegments yy
-
-splitSegs [] = ([], Nothing)
-splitSegs (True:(True:bs)) = ([], Just bs)
-splitSegs (b:bs) = b `consFst` splitSegs bs
-
 
 parseStream :: [Bool] -> (Bool, [Maybe Fib])
 parseStream = fromClean
