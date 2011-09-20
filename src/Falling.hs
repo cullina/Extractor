@@ -5,16 +5,42 @@ import Data.List(unfoldr)
 
 
 data Falling a = Falling 
-                 { firstMaxValue :: a 
-                 , unifValues    :: [a]
+                 { maxMaxValue :: a 
+                 , fallingValues    :: [a]
                  } deriving Show
+
+data Rising a = Rising 
+                { minMaxValue :: a 
+                , risingValues    :: [a]
+                } deriving Show
 
 splitF :: (Num a) => Falling a -> Maybe (UnifNat a, Falling a)
 
 splitF (Falling m (x:xs)) = Just (UnifNat m x, Falling (m - 1) xs) 
 splitF (Falling _ [])     = Nothing
 
+splitR :: (Num a) => Rising a -> Maybe (UnifNat a, Rising a)
+
+splitR (Rising m (x:xs)) = Just (UnifNat m x, Rising (m + 1) xs) 
+splitR (Rising _ [])     = Nothing
+
 unifsFromFalling = unfoldr splitF
+
+unifsFromRising = unfoldr splitR
+
+unifToFalling (UnifNat a b) = Falling a [b]
+
+unifToRising (UnifNat a b) = Rising a [b]
+
+safeJoinF (UnifNat um x) (Falling fm xs) = 
+  if um == fm + 1
+  then Just $ Falling um (x : xs)
+  else Nothing
+
+safeJoinR (UnifNat um x) (Rising fm xs) = 
+  if um == fm - 1
+  then Just $ Rising um (x : xs)
+  else Nothing
 
 testUnifs :: (Integral a) => a -> [UnifNat a] -> Bool
 
@@ -27,15 +53,4 @@ joinF (UnifNat um x) (Falling _ xs) = Falling um (x : xs)
 fallingFromUnifs :: (Num a) => [UnifNat a] -> Falling a
 
 fallingFromUnifs = foldr joinF (Falling 0 [])
-
-
-slowPerm = sP . unifValues  
-  where sP []     = []
-        sP (u:us) = u : map (\x -> if x >= u then x + 1 else x) (sP us)
-  
-slowUnperm m ps = Falling m $ slowUnperm' m ps where
-  slowUnperm' _ []     = []
-  slowUnperm' m (p:ps) = 
-    p : map (\x -> if x > p then x - 1 else x) (slowUnperm' (m - 1) ps)
-    
 

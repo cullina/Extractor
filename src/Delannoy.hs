@@ -1,6 +1,7 @@
 module Delannoy where
 
 import Data.List(foldl', unfoldr)
+import SubsetSelection
 
 data Step = Horizontal | Vertical | Diagonal deriving Eq
 
@@ -32,16 +33,33 @@ translate slack (Horizontal:ss) = translate (slack + 1) ss
 translate slack (Vertical:ss)   = slack : translate 0 ss
 translate slack (Diagonal:ss)   = -(slack + 1) : translate 0 ss
 
-pathToPoint = foldr pTP (0, [])
+pathToPoint = radius . foldr pTP (0, [])
   where pTP Horizontal (slack, xs) = (slack + 1, xs)
         pTP Vertical   (slack, xs) = (0, slack : xs)
         pTP Diagonal   (slack, xs) = (0, -(slack + 1) : xs)
+        radius (slack, xs)         = (xs, slack + sum (map abs xs))  
         
-pointToPath = unfoldr pTP
+pointToPath = unfoldr pTP . unradius
   where pTP (0, [])     = Nothing
         pTP (0, (x:xs)) = if x >= 0
                           then Just (Vertical, (x, xs))
                           else Just (Diagonal, (-x - 1, xs))
         pTP (x, xs)     = Just (Horizontal, (x - 1, xs))
+        unradius (xs, bound) = (bound - sum (map abs xs), xs)
 
-params xs = (fst xs + (sum . map abs . snd) xs, (length . snd) xs)
+
+params = mapFst length
+
+mapFst f (x, y) = (f x, y)
+
+decomposePoint xs = 
+  let zeros    = map (== 0) xs
+      nonzeros = filter (/= 0) xs
+      signs    = map (< 0) nonzeros
+      unsigned = map abs nonzeros
+  in (zeros, signs, unsigned)
+     
+constructPoint (zeros, signs, unsigned) =
+  let negateIf b = if b then negate else id
+  in unpartition zeros (repeat 0) (zipWith negateIf signs unsigned)
+

@@ -10,7 +10,6 @@ module SubsetSelection
        , unpartition
        , indicesToBitList
        , bitListToIndices
-       , perm
        ) where
 
 import Uniform
@@ -63,35 +62,6 @@ subsetDist n k =
   let left  = fmap (True  :) $ subsetDist (n - 1) (k - 1)
       right = fmap (False :) $ subsetDist (n - 1) k
   in Bernoulli (k % n) left right
-
-
-perm :: (Integral a) => [UnifNat a] -> [a]
-
-perm [] = []
-perm [UnifNat 1 0] = [0]
-perm f@(UnifNat m _ : _) =
-  let split = div m 2
-      (bs, xs, ys) = disect f split
-  in unpartition bs (map (split +) (perm xs)) (perm ys)
-
-
-
-disect us split = 
-  let ds = decisions us split
-      f = map fst
-      g = map snd . filter fst
-      h = map snd . filter (not . fst)
-  in (f ds, g ds, h ds)
-
-
-decisions [] _ = []
-decisions (u:us) split = 
-  let (b, v) = decision split u  
-  in (b, v) : decisions us (if b then split else (split - 1))
-
-
-
-
 
 
 -- index list to subset

@@ -2,7 +2,7 @@ module Fibonacci where
 
 import Data.List(foldl')
 import Bit(pruneZeroes)
-import Util(mapSnd)
+import Util(mapSnd, insertNothings, parseNothings)
 
 f = False
 t = True
@@ -11,33 +11,39 @@ data Fib = Long
          | Short 
          deriving Show
 
-fibBitsToInt = fst . foldl' fibRecIf (0, 0)
+fBitsToInt :: (Integral a) => [Bool] -> a
+fBitsToInt = fst . foldl' fibRecIf (0, 0)
 
-fibBitsToNat = fst . foldl' fibRecIf (1, 1)
+fBitsToNat :: (Integral a) => [Bool] -> a
+fBitsToNat = fst . foldl' fibRecIf (1, 1)
 
 fibRecIf (m,n) b = 
     let m' = m + if b then 1 else 0
     in (m' + n, m')
 
-
+fibs :: (Integral a) => [a]
 fibs = map fst $ iterate fibRec (1, 1)
     where fibRec (m, n) = (m + n, m)
 
 
+intToFBits :: (Integral a) => a -> [Fib]
+intToFBits n = toFBits True (reverse (takeWhile (<= n) fibs)) n
 
-intToFibBits n = toFibBits (reverse (takeWhile (<= n) fibs)) n
+intToWFBits :: (Integral a) => Int -> a -> [Fib]
+intToWFBits w = toFBits False (reverse (take w fibs))
 
-natToFibBits n = tail $ toFibBits (reverse (takeWhile (<= n) fibs)) n
+natToFBits :: (Integral a) => a -> [Fib]
+natToFBits = tail . intToFBits
 
-toFibBits [] _ = []
-toFibBits [f] n = 
+toFBits :: (Integral a) => Bool -> [a] -> a -> [Fib]
+toFBits False []     _ = []
+toFBits True  []     _ = [Short]
+toFBits False (f:fs) n = toFBits True fs n
+toFBits True  (f:fs) n =
     if f <= n
-    then True  : toFibBits fs (n - f)
-    else False : toFibBits fs n
-toFibBits (f:_:fs) n =
-    if f <= n
-    then True  : toFibBits fs (n - f)
-    else False : toFibBits fs n
+    then Long  : toFBits False fs (n - f)
+    else Short : toFBits True  fs n
+
 
 -- F_{n+2} = 1 + sum_{i=0}^n F_i
 
@@ -66,20 +72,29 @@ writeStream b fs = concatMap wS fs ++ seed b
         wS (Just Short) = [False]
         wS (Just Long)  = [True, False]
     
+streamToFibsSeq :: [Bool] -> [[Fib]]
+streamToFibsSeq = parseNothings . snd . parseStream
 
-fibBitsToNatList = map fibBitsToNat . parseSegments
+fibsSeqToStream :: [[Fib]] -> [Bool]
+fibsSeqToStream = writeStream False . insertNothings
 
-expand = concatMap ex
+fBitsToNats :: (Integral a) => [Bool] -> [a]
+fBitsToNats = map (fBitsToNat . fibsToFBits) . streamToFibsSeq
+
+natsToFBits :: (Integral a) => [a] -> [Bool]
+natsToFBits =  fibsSeqToStream . map natToFBits
+
+
+fibsToFBits :: [Fib] -> [Bool]
+fibsToFBits = concatMap ex
   where ex Long  = [False, True]
         ex Short = [False]
 
-translate [] = []
-
-translate (False:(True:bs)) = True : translate bs
-
-translate (False:bs) = False : translate bs
-
-translate (True : _) = error "Initial or consecutive Trues." 
+fBitsToFibs :: [Bool] -> Maybe [Fib]
+fBitsToFibs [] = Just []
+fBitsToFibs (False:(True:bs)) = fmap (Long :) (fBitsToFibs bs)
+fBitsToFibs (False:bs) = fmap (Short :) (fBitsToFibs bs)
+fBitsToFibs (True : _) = Nothing
 
 {----}
 
@@ -107,28 +122,9 @@ removePairs b1 b2 (b3:bs) =
       (True, True, bs') -> (True, False, False : bs')
       (b2',  b3',  bs') -> (b1,   b2',   b3'   : bs')
 
-
-incrementFib' True  True  _  = error "Consecutive Trues."
-incrementFib' b1    False [] = (b1, True, [])
-incrementFib' False True  [] = (True, False, [])
-
-incrementFib' b1 b2 (b3:bs) =
-    case incrementFib' b2 b3 bs of
-      (True, True, bs') -> (True, False, False : bs')
-      (b2',  b3',  bs') -> (b1,   b2',   b3'   : bs')
-
-incrementFib bs =
-    let (b1, b2, bs') = incrementFib' False False bs
-    in pruneZeroes $ b1 : b2 : bs'
-
-
-incrementFib2 = end . foldr merge ([], EQ)
-  where --inc []      = ([Short], False)
-        --inc [Short] = ([], True)
-        --inc [Long]  = ([Short], True)
-        --inc (f:fs) = merge f (inc fs)
-        
-        merge Short (fs, EQ) = (fs,             LT)
+incrementFib :: [Fib] -> [Fib]
+incrementFib = end . foldr merge ([], EQ)
+  where merge Short (fs, EQ) = (fs,             LT)
         merge Long  (fs, EQ) = (Short:fs,       LT)
         merge f     (fs, GT) = (f:fs,           GT)
         merge Short (fs, LT) = (Long:fs,        GT)

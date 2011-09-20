@@ -1,6 +1,6 @@
 module RandomValue where
 
-
+import Util
 import Control.Monad(replicateM, ap)
 import Control.Applicative
 
@@ -127,8 +127,3 @@ useVector rs [] = ([], rs)
 useVector [] _  = ([], [])
 
 cyc (xs, ys) = ys ++ xs
-
-mapHead _ [] = []
-mapHead f (x:xs) = f x : xs
-
-mapFst f (x, y) = (f x, y)
