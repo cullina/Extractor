@@ -2,7 +2,7 @@ module Fibonacci where
 
 import Data.List(foldl')
 import Bit(pruneZeroes)
-import Util(mapSnd, insertNothings, parseNothings)
+import Util(cons, mapSnd, insertNothings, parseNothings)
 
 f = False
 t = True
@@ -26,23 +26,25 @@ fibs = map fst $ iterate fibRec (1, 1)
     where fibRec (m, n) = (m + n, m)
 
 
+natToFBits :: (Integral a) => a -> [Fib]
+natToFBits n = snd $ toFBits1 (reverse (takeWhile (<= n) fibs)) n
+
 intToFBits :: (Integral a) => a -> [Fib]
-intToFBits n = toFBits True (reverse (takeWhile (<= n) fibs)) n
+intToFBits n = cons $ toFBits1 (reverse (takeWhile (<= n) fibs)) n
 
 intToWFBits :: (Integral a) => Int -> a -> [Fib]
-intToWFBits w = toFBits False (reverse (take w fibs))
+intToWFBits w = toFBits0 (reverse (take w fibs))
 
-natToFBits :: (Integral a) => a -> [Fib]
-natToFBits = tail . intToFBits
+toFBits0 :: (Integral a) => [a] -> a -> [Fib]
+toFBits0 []     _ = []
+toFBits0 (f:fs) n = cons (toFBits1 fs n)
 
-toFBits :: (Integral a) => Bool -> [a] -> a -> [Fib]
-toFBits False []     _ = []
-toFBits True  []     _ = [Short]
-toFBits False (f:fs) n = toFBits True fs n
-toFBits True  (f:fs) n =
+toFBits1 :: (Integral a) => [a] -> a -> (Fib, [Fib])
+toFBits1 []     _ = (Short , [])
+toFBits1 (f:fs) n =
     if f <= n
-    then Long  : toFBits False fs (n - f)
-    else Short : toFBits True  fs n
+    then (Long,  toFBits0 fs (n - f))
+    else (Short, cons (toFBits1 fs n))
 
 
 -- F_{n+2} = 1 + sum_{i=0}^n F_i
