@@ -2,6 +2,9 @@ module Util where
 
 import Data.List(intercalate)
 
+cons :: (a, [a]) -> [a]
+cons = uncurry (:)
+
 mapFst :: (a -> b) -> (a, c) -> (b, c) 
 mapFst f (x, y) = (f x, y)
 
