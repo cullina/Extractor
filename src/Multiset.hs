@@ -4,11 +4,6 @@ import SubsetSelection
 import Data.List(unfoldr)
 -- multisets/compositions
 
-toList (x,xs) = x:xs
-
-fromList []     = Nothing
-fromList (x:xs) = Just (x, xs)
-
 subsetToComposition = foldr sTC (0, [])
   where sTC True  (n, ns) = (0, n:ns)
         sTC False (n, ns) = (n+1, ns)

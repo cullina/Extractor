@@ -2,7 +2,7 @@ module Fibonacci where
 
 import Data.List(foldl')
 import Bit(pruneZeroes)
-import Util(cons, mapSnd, insertNothings, parseNothings)
+import Util(toList, mapSnd, insertNothings, parseNothings)
 
 f = False
 t = True
@@ -30,21 +30,21 @@ natToFBits :: (Integral a) => a -> [Fib]
 natToFBits n = snd $ toFBits1 (reverse (takeWhile (<= n) fibs)) n
 
 intToFBits :: (Integral a) => a -> [Fib]
-intToFBits n = cons $ toFBits1 (reverse (takeWhile (<= n) fibs)) n
+intToFBits n = toList $ toFBits1 (reverse (takeWhile (<= n) fibs)) n
 
 intToWFBits :: (Integral a) => Int -> a -> [Fib]
 intToWFBits w = toFBits0 (reverse (take w fibs))
 
 toFBits0 :: (Integral a) => [a] -> a -> [Fib]
 toFBits0 []     _ = []
-toFBits0 (f:fs) n = cons (toFBits1 fs n)
+toFBits0 (f:fs) n = toList (toFBits1 fs n)
 
 toFBits1 :: (Integral a) => [a] -> a -> (Fib, [Fib])
 toFBits1 []     _ = (Short , [])
 toFBits1 (f:fs) n =
     if f <= n
     then (Long,  toFBits0 fs (n - f))
-    else (Short, cons (toFBits1 fs n))
+    else (Short, toList (toFBits1 fs n))
 
 
 -- F_{n+2} = 1 + sum_{i=0}^n F_i

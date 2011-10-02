@@ -2,8 +2,17 @@ module Util where
 
 import Data.List(intercalate)
 
-cons :: (a, [a]) -> [a]
-cons = uncurry (:)
+toList :: (a, [a]) -> [a]
+toList = uncurry (:)
+
+toNonemptyList :: [a] -> Maybe (a, [a])
+toNonemptyList []     = Nothing
+toNonemptyList (x:xs) = Just (x, xs)
+
+cons :: a -> (a, [a]) -> (a, [a])
+cons x xs = (x, toList xs)
+
+nonemptyMap f (x, xs) = (f x, map f xs)
 
 mapFst :: (a -> b) -> (a, c) -> (b, c) 
 mapFst f (x, y) = (f x, y)
@@ -25,6 +34,12 @@ dup x = (x, x)
 maybePred :: (Integral a) => a -> Maybe a
 maybePred 0 = Nothing
 maybePred n = Just (n - 1)
+
+churchEncoding :: (Integral a) => a -> (b -> b) -> b -> b
+churchEncoding 0 _ = id
+churchEncoding n f = f . churchEncoding (n - 1) f
+
+
 
 
 insertNothings :: [[a]] -> [Maybe a]
