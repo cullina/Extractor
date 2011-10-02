@@ -2,7 +2,7 @@ module Partition where
 
 import Multiset
 import Data.List(mapAccumR)
-import Util(dup, (...), mapHead, churchEncoding)
+import Util(dup, (...), mapHead, toList, churchEncoding)
 
 diffsToFreqs :: (Integral a) => [a] -> [a]
 diffsToFreqs = foldr dTF []
@@ -19,3 +19,5 @@ diffsToPartition :: (Integral a) => [a] -> [a]
 diffsToPartition = snd . mapAccumR (dup ... (+)) 0
 
 conjugate = diffsToPartition . reverse . partitionToFreqs
+
+pathToFreqs = toList . subsetToComposition . (False :)
