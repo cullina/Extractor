@@ -2,22 +2,26 @@ module Partition where
 
 import Multiset
 import Data.List(mapAccumR)
-import Util(dup, (...), mapHead, toList, churchEncoding)
+import Util(dup, (...), cons, mapFst, toList, churchEncoding, flipNonempty, reverseNonempty, zipWithNonempty)
 
-diffsToFreqs :: (Integral a) => [a] -> [a]
-diffsToFreqs = foldr dTF []
-  where dTF x = mapHead (1 +) . churchEncoding x (0 :)
-          
+diffsToFreqs :: (Integral a) => (a, [a]) -> (a, [a])
+diffsToFreqs (x, xs) = align x $ foldr dTF (0,[]) xs
+  where dTF x = mapFst (1 +) . align x 
+        align x = churchEncoding x (cons 0)
+
+diffsToFreqsViaBits = subsetToComposition . map not . compositionToSubset          
+
 partitionToFreqs = diffsToFreqs . partitionToDiffs
   
 
-partitionToDiffs :: (Integral a) => [a] -> [a]
-partitionToDiffs []         = []
-partitionToDiffs xss@(_:xs) = zipWith (-) xss (xs ++ [0])
+partitionToDiffs :: (Integral a) => (a, [a]) -> (a, [a])
+partitionToDiffs xss@(_,xs) = 
+  zipWithNonempty (-) xss (flipNonempty (xs, 1))
   
-diffsToPartition :: (Integral a) => [a] -> [a]
-diffsToPartition = snd . mapAccumR (dup ... (+)) 0
+diffsToPartition :: (Integral a) => (a, [a]) -> (a, [a])
+diffsToPartition (x, xs) = mapFst (x +) $ mapAccumR (dup ... (+)) 1 xs
 
-conjugate = diffsToPartition . reverse . partitionToFreqs
+conjugate = diffsToPartition . reverseNonempty . partitionToFreqs
 
-pathToFreqs = toList . subsetToComposition . (False :)
+conjugateViaBits = diffsToPartition . reverseNonempty . diffsToFreqsViaBits . partitionToDiffs
+

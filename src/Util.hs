@@ -12,7 +12,18 @@ toNonemptyList (x:xs) = Just (x, xs)
 cons :: a -> (a, [a]) -> (a, [a])
 cons x xs = (x, toList xs)
 
-nonemptyMap f (x, xs) = (f x, map f xs)
+flipNonempty :: ([a], a) -> (a, [a])
+flipNonempty ([],   y) = (y, [])
+flipNonempty (x:xs, y) = (x, xs ++ [y])
+
+reverseNonempty :: (a, [a]) -> (a, [a])
+reverseNonempty (x, xs) = flipNonempty (reverse xs, x)
+
+mapNonempty f (x, xs) = (f x, map f xs)
+
+zipNonempty (x, xs) (y, ys) = ((x, y), zip xs ys)
+
+zipWithNonempty f (x, xs) (y, ys) = (f x y, zipWith f xs ys)
 
 mapFst :: (a -> b) -> (a, c) -> (b, c) 
 mapFst f (x, y) = (f x, y)
