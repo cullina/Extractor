@@ -31,6 +31,9 @@ mapFst f (x, y) = (f x, y)
 mapSnd :: (a -> b) -> (c, a) -> (c, b) 
 mapSnd f (x, y) = (x, f y)
 
+mapPair :: (a -> b) -> (a, a) -> (b, b)
+mapPair f (x, y) = (f x, f y)
+
 mapHead :: (a -> a) -> [a] -> [a]
 mapHead _ [] = []
 mapHead f (x:xs) = f x : xs
@@ -41,6 +44,9 @@ f ... g = \x y -> f (g x y)
 
 dup :: a -> (a, a)
 dup x = (x, x)
+
+keepArg :: (a -> b) -> a -> (a, b)
+keepArg f x = (x, f x) 
 
 maybePred :: (Integral a) => a -> Maybe a
 maybePred 0 = Nothing

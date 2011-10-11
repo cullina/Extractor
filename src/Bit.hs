@@ -11,7 +11,9 @@ module Bit
      incrementInt,
      incrementNat,
      incrementFixedWidthInt,
-     pruneZeroes
+     pruneZeroes,
+     allBitStrings,
+     showBits
     )
 where
 
@@ -85,3 +87,13 @@ incrementInt' (b:bs) =
     in (xor b carry : lowBits, (&&) b carry)  
 
 pruneZeroes = dropWhile not
+
+allBitStrings :: (Integral a) => a -> [[Bool]]
+allBitStrings 0 = [[]]
+allBitStrings n = f =<< allBitStrings (n - 1)
+  where f xs = [False:xs, True:xs]
+
+showBits :: [Bool] -> String
+showBits = map f
+  where f True  = '1'
+        f False = '0'
