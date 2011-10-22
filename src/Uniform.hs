@@ -22,7 +22,10 @@ import Data.Ratio
 data UnifNat a = UnifNat {
       maxValue :: a
     , unifValue  :: a
-} deriving Show
+}
+
+instance (Show a) => Show (UnifNat a) where
+  show (UnifNat m u) = "U " ++ show m ++ " " ++ show u
 
 newUnifNat max value =
     UnifNat max (mod value max)
