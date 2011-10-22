@@ -88,10 +88,10 @@ incrementInt' (b:bs) =
 
 pruneZeroes = dropWhile not
 
+allBits = [True, False]
+
 allBitStrings :: (Integral a) => a -> [[Bool]]
-allBitStrings 0 = [[]]
-allBitStrings n = f =<< allBitStrings (n - 1)
-  where f xs = [False:xs, True:xs]
+allBitStrings n = sequence $ replicate (fromIntegral n) allBits
 
 showBits :: [Bool] -> String
 showBits = map f
