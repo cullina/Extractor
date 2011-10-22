@@ -1,11 +1,12 @@
 module SortingNetwork where
 
 import Array
-import Data.List(foldl', elemIndex, group, mapAccumL)
+import Data.List(foldl', elemIndex, group, mapAccumL, minimumBy)
+import Data.Function(on)
 import Data.Maybe(fromJust)
 import Bit(allBitStrings, showBits)
-import Util(mapFst, mapSnd, mapPair, keepArg, dup, (...))
-           
+import Util(mapFst, mapSnd, mapPair, keepArg, dup, (...), minimumsSoFarBy)
+import Permutation(permute, allPermutations)           
 
 sortPair :: (Ix a, Ord b) => Array a b -> (a,a) -> Array a b
 sortPair arr (x, y) = 
@@ -155,19 +156,40 @@ graph = [ ("1001","1100")
         , ("1010","1100")
         , ("0101","1010")]
         
-net2 = [(1,4),
-        (4,8),
-        (2,4),(1,3),(1,2),--find max of top
-        (11,14),
-        (7,11),
-        (11,13),(12,14),(13,14), --max of bottom
+net2 = [(1,4),(2,3),
+        (2,4),(1,3),--find maxes of top
+        (11,14),(12,13),
+        (11,13),(12,14), --maxes of bottom
+        (4,8),(7,11), --bridge
         (5,8),(7,10),
-        (3,7),(8,12),
+        (3,7),(8,12), --bridge
         (5,9),(6,10),
-        (3,5),(10,12),
-        (5,7),(8,10),
         (5,6),(9,10),
-        (4,5),(10,11),
-        (2,3),(3,4),
-        (12,13),(11,12),
+        (3,5),(10,12), --bridge
+        (5,7),(8,10),
+        (4,5),(10,11), --bridge
+        (1,2),(3,4),
+        (13,14),(11,12),
         (6,7),(8,9),(7,8)]
+       
+net3 = [(1,4),(2,3),
+        (2,4),(1,3),--find maxes of top
+        (11,14),(12,13),
+        (11,13),(12,14)] --maxes of bottom
+        
+pNet = [[(4,8),(7,11),(5,8),(7,10),(5,6),(9,10),(3,5),(10,12)], --bridge
+        [(5,9),(6,10)],
+        [(3,7),(8,12)],
+        [(5,7),(8,10)],
+        [(4,5),(10,11)], --bridge
+        [(6,7),(8,9)]]
+        
+net4 = [(1,2),(3,4),
+        (13,14),(11,12),
+        (7,8)]
+       
+randomNet p = net3 ++ concat (permute p pNet) ++ net4
+
+testRandomNet p = length $ testNetwork (randomNet p) 16 bs
+
+testAllNets k = minimumsSoFarBy (compare `on` snd) . map (keepArg testRandomNet) . take k $ allPermutations 6
