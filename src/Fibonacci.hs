@@ -37,7 +37,7 @@ intToWFBits w = toFBits0 (reverse (take w fibs))
 
 toFBits0 :: (Integral a) => [a] -> a -> [Fib]
 toFBits0 []     _ = []
-toFBits0 (f:fs) n = toList (toFBits1 fs n)
+toFBits0 (_:fs) n = toList (toFBits1 fs n)
 
 toFBits1 :: (Integral a) => [a] -> a -> (Fib, [Fib])
 toFBits1 []     _ = (Short , [])
