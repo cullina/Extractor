@@ -71,7 +71,7 @@ parseNothings = foldr pN [[]]
         pN (Just x) xss = mapHead (x :) xss
         
 minimumsSoFarBy :: (a -> a -> Ordering) -> [a] -> [a]
-minimumsSoFarBy comp [] = []
+minimumsSoFarBy _ [] = []
 minimumsSoFarBy comp (x:xs) = x : f x xs 
   where f _ [] = []
         f min (x:xs) =
