@@ -28,6 +28,10 @@ f = False
 
 vtWeight bs = sum (getSubset [1..] bs) `mod` (length bs + 1)
 
+vtClass n k = filter ((k ==) . vtWeight) (allBitStrings n)
+
+vtClasses n = map (vtClass n) [0..n]
+
 --------------------
 
 atMostSOnes n s = allSubsets n =<< [0..s]
@@ -62,4 +66,11 @@ induceSubgraph vSet = filter (bothElems vSet)
 testClique edgeSet vs = isSubsetOf cliqueEdgeSet edgeSet
   where cliqueEdgeSet = fromList . allPairs . sort $ vs
         
-countCliques edgeSet n k = length . filter id . map (testClique edgeSet) $ allSubsetsOf k [0..n-1]
+testCliques edgeSet = map snd . filter fst . map (keepArg2 (testClique edgeSet))
+
+countCliques edgeSet n k = testCliques edgeSet $ allSubsetsOf k [0..n-1]
+
+countCliqueVT n = keepArg2 length . testCliques (levEdges 1 n) $ cliqueCandidates n
+
+cliqueCandidates = map sort . sequence . map (map bitsToInt) . vtClasses
+
