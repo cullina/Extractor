@@ -22,6 +22,8 @@ instance Monad (Distribution i) where
     (Bernoulli p l r) >>= f = Bernoulli p (l >>= f) (r >>= f)
 
                   
+support (Constant x)      = [x]
+support (Bernoulli _ l r) = support l ++ support r
 
 -- nonuniform finite support random variables
 {------}{------}{------}{------}{------}{------}{------}{------}{------}{------}
