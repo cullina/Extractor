@@ -88,7 +88,7 @@ incrementInt' (b:bs) =
 
 pruneZeroes = dropWhile not
 
-allBits = [True, False]
+allBits = [False, True]
 
 allBitStrings :: (Integral a) => a -> [[Bool]]
 allBitStrings n = sequence $ replicate (fromIntegral n) allBits
