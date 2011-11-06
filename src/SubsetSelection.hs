@@ -4,6 +4,8 @@ module SubsetSelection
        , subsetFromInteger
        , subsetFromUniform
        , subsetDist
+       , allSubsets
+       , allSubsetsOf
        , getSubset
        , subsetToIndex
        , partitionSubsets
@@ -16,6 +18,7 @@ import Uniform
 import Distribution
 import Data.List(partition, unfoldr)
 import Data.Ratio((%))
+import Control.Applicative((<$>))
 
 -- Compute binomial coefficients
 
@@ -56,16 +59,23 @@ subsetToIndex = foldr sTI ((0, 0), mempty)
           in ((n', k'), i')
 
 
-subsetDist _ 0 = Constant []
+subsetDist :: (Integral a) => a -> a -> Distribution a [Bool]
+subsetDist n k
+  | n == 0    = Constant []
+  | k == 0    = right
+  | k == n    = left 
+  | otherwise =  Bernoulli (k % n) left right
+    where left  = (True :)  <$> subsetDist (n - 1) (k - 1)
+          right = (False :) <$> subsetDist (n - 1) k
+  
 
-subsetDist n k = 
-  let left  = fmap (True  :) $ subsetDist (n - 1) (k - 1)
-      right = fmap (False :) $ subsetDist (n - 1) k
-  in Bernoulli (k % n) left right
+allSubsets :: (Integral a) => a -> a -> [[Bool]]
+allSubsets n = support . subsetDist n
 
+allSubsetsOf k set = map (getSubset set) $ allSubsets (length set) k
 
 -- index list to subset
-
+getSubset :: [a] -> [Bool] -> [a]
 getSubset set = 
     map fst . filter snd . zip set
 
