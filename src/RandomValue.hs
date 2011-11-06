@@ -1,6 +1,6 @@
 module RandomValue where
 
-import Util
+--import Util
 import Control.Monad(replicateM, ap)
 import Control.Applicative
 
@@ -79,7 +79,7 @@ toMaybeND (NotDone f) = Just f
 
 allDone = sequence . map toMaybeD
 
-
+{-
 untilAllDone :: ([RValue a b] -> RValue a [RValue a b]) -> [RValue a b] -> RValue a [b]
 untilAllDone f rs = 
   case allDone rs of
@@ -127,3 +127,4 @@ useVector rs [] = ([], rs)
 useVector [] _  = ([], [])
 
 cyc (xs, ys) = ys ++ xs
+-}
