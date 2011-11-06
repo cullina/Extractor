@@ -44,15 +44,18 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 
+Executable clique
+  Main-is: Main.hs   
+  hs-source-dirs:  src
 
 Library
   -- Modules exported by the library.
   Exposed-modules:     UniversalHash, UnbalancedTree, Sample, PrefixCode, Levenshtein, LempelZiv, FiniteVectorSpace, Fibonacci, BinaryFieldTransform, RandomDistribution, DoublyRandomValue, RandomStream
   
   -- Packages needed in order to build this package.
-  Build-depends:  base >= 4.0, mtl >= 2, random >= 1
+  Build-depends:  base >= 4.0, mtl >= 2, random >= 1, containers
 
-  ghc-options:    -W -Werror -fwarn-tabs    
+  ghc-options:    -W -Werror -fwarn-tabs -O2
   hs-source-dirs:  src
   
   -- Modules not exported by this package.
