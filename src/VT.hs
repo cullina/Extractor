@@ -1,10 +1,10 @@
 module VT where
 
 import Bit(bitsToInt, allBitStrings)
-import SubsetSelection(allSubsets, allSubsetsOf)
-import Data.Set(Set, fromList, unions, size, elems)
+import SubsetSelection(allSubsets, allSubsetsOf, getSubset)
+import Data.Set(Set, fromList, unions, isSubsetOf)
 import Data.List
-import Data.Graph.Inductive.Graph
+--import Data.Graph.Inductive.Graph
 import Util(keepArg2)
 
 vt = [1,1,2,2,4,6,10,16,30,52,94,172,316,586,1096,
@@ -26,11 +26,16 @@ f = False
 
 -------------------------
 
+vtWeight bs = sum (getSubset [1..] bs) `mod` (length bs + 1)
+
+--------------------
+
 atMostSOnes n s = allSubsets n =<< [0..s]
 
 insertion ps [] = ps
 insertion (True:ps) bs@(b:_) = not b : insertion ps bs
 insertion (False:ps) (b:bs) = b : insertion ps bs
+insertion [] _ = []
 
 insertion2 :: [Bool] -> [Bool] -> [Bool]
 insertion2 bs = snd . mapAccumL f bs
@@ -46,7 +51,15 @@ clique s = allPairs . sort . map bitsToInt . allInsertions s
 
 levVertices = map (keepArg2 bitsToInt) . allBitStrings
 
-levEdges s n = elems . fromList $ clique s =<< allBitStrings (n - s)
+levEdges s n = fromList $ clique s =<< allBitStrings (n - s)
 
 allPairs [] = []
 allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
+
+induceSubgraph vSet = filter (bothElems vSet)
+  where bothElems vSet (x, y) = elem x vSet && elem y vSet
+        
+testClique edgeSet vs = isSubsetOf cliqueEdgeSet edgeSet
+  where cliqueEdgeSet = fromList . allPairs . sort $ vs
+        
+countCliques edgeSet n k = length . filter id . map (testClique edgeSet) $ allSubsetsOf k [0..n-1]
