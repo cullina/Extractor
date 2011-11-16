@@ -7,6 +7,7 @@ import Data.List
 --import Data.Graph.Inductive.Graph
 import Util(keepArg2)
 import Data.Function(on)
+import Levenshtein(levDist)
 
 vt = [1,1,2,2,4,6,10,16,30,52,94,172,316,586,1096,
       2048,3856,7286,13798,26216,49940,95326,182362,
@@ -27,11 +28,17 @@ f = False
 
 -------------------------
 
-vtWeight bs = sum (getSubset [1..] bs) `mod` (length bs + 1)
+vtSum = sum . getSubset [1..]
+
+vtWeight bs = vtWeightM (length bs + 1) bs
+
+vtWeightM m bs = vtSum bs `mod` m
 
 vtClass n k = filter ((k ==) . vtWeight) (allBitStrings n)
 
 vtClasses n = map (vtClass n) [0..n]
+
+vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + (max k (n - k)))) (allSubsets n k) 
 
 --------------------
 
@@ -88,3 +95,9 @@ cliqueAssistedColor (c:cs) =
 
 deleteVertex :: Int -> [[Int]] -> [[Int]] 
 deleteVertex v = map (delete v)
+
+--------------------
+
+metricGraph :: (Ord b) => (a -> a -> b) -> b -> [a] -> [(a,a)]
+metricGraph metric radius =
+  filter ((radius >=) . uncurry metric) . allPairs

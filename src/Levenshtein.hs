@@ -35,6 +35,7 @@ slowLDist xs [] = length xs
 slowLDist [] ys = length ys
 
 
+levDist x y = fst (quadLDist x y)
 
 quadLDist xs ys = quadLDist' xs ys (0,1) (iterate incFst (1,1))
 
