@@ -6,6 +6,7 @@ import Data.Set(Set, fromList, unions, isSubsetOf)
 import Data.List
 --import Data.Graph.Inductive.Graph
 import Util(keepArg2)
+import Data.Function(on)
 
 vt = [1,1,2,2,4,6,10,16,30,52,94,172,316,586,1096,
       2048,3856,7286,13798,26216,49940,95326,182362,
@@ -89,3 +90,16 @@ cliqueCandidatesH n = map (ggg . vthClasses n) [0..(n-1) `div` 2]
 
 countCliqueVTH' n = fff n . ggg $ vthClasses n 1
 
+------------------
+
+cliqueAssistedColor :: [[Int]] -> [[Int]]
+cliqueAssistedColor [] = []
+cliqueAssistedColor (c:cs) = 
+  cAC . sortBy (compare `on` length) $ foldr deleteVertex cs c
+  where cAC [] = []
+        cAC ([]:cs) = cAC cs
+        cAC ([c]:cs) = cAC . sortBy (compare `on` length) $ deleteVertex c cs
+        cAC cs = cs
+
+deleteVertex :: Int -> [[Int]] -> [[Int]] 
+deleteVertex v = map (delete v)
