@@ -49,7 +49,8 @@ keepArg :: (a -> b) -> a -> (a, b)
 keepArg f x = (x, f x) 
 
 keepArg2 :: (a -> b) -> a -> (b, a)
-keepArg2 f x = (f x, x) 
+keepArg2 f x = (f x, x)
+
 
 maybePred :: (Integral a) => a -> Maybe a
 maybePred 0 = Nothing

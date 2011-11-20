@@ -27,12 +27,18 @@ t = True
 f = False
 
 -------------------------
+hWeight = length . filter id
 
 vtSum = sum . getSubset [1..]
 
 vtWeight bs = vtWeightM (length bs + 1) bs
 
 vtWeightM m bs = vtSum bs `mod` m
+
+vthClass n w = let subs = allSubsets n w ++ allSubsets n (w+1)
+               in \k -> filter ((k ==) . vtWeight) subs
+
+vthClasses n w = map (vthClass n w) [0..n]
 
 vtClass n k = filter ((k ==) . vtWeight) (allBitStrings n)
 
@@ -45,7 +51,7 @@ vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + (max k (n - k)))) (allSubse
 atMostSOnes n s = allSubsets n =<< [0..s]
 
 insertion ps [] = ps
-insertion (True:ps) bs@(b:_) = not b : insertion ps bs
+insertion (True:ps)  (b:bs) = not b : insertion ps (b:bs)
 insertion (False:ps) (b:bs) = b : insertion ps bs
 insertion [] _ = []
 
@@ -78,9 +84,18 @@ testCliques edgeSet = map snd . filter fst . map (keepArg2 (testClique edgeSet))
 
 countCliques edgeSet n k = testCliques edgeSet $ allSubsetsOf k [0..n-1]
 
-countCliqueVT n = keepArg2 length . testCliques (levEdges 1 n) $ cliqueCandidates n
+countCliqueVT n = fff n . ggg $ vtClasses n
 
-cliqueCandidates = map sort . sequence . map (map bitsToInt) . vtClasses
+countCliqueVTH n = zip [1..] $ fff n =<< cliqueCandidatesH n
+
+
+fff n = zip [1..] . testCliques (levEdges 1 n) 
+
+ggg = map sort . sequence . map (map bitsToInt)
+
+cliqueCandidatesH n = map (ggg . vthClasses n) [0..(n-1) `div` 2] 
+
+countCliqueVTH' n = fff n . ggg $ vthClasses n 1
 
 ------------------
 
