@@ -2,5 +2,5 @@ module Main where
 
 import VT
 
-main = mapM (print . countCliqueVT) [2..6]
+main = mapM print $ concatMap countCliqueVTH' [2..10]
        
