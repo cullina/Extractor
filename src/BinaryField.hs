@@ -18,7 +18,7 @@ module BinaryField
     )
 where
 
-import Bit(bitsToInt, intToBits, intWToBits, xor)
+import Bit(bitsToInt, intToBits, intWToBits, xor, showBool)
 
 data Poly = Poly {
       polyLen  :: Int 
@@ -29,8 +29,6 @@ instance Show Poly where
     show p@(Poly len pp) =
         show (len, toInt p, map showBool (expand len pp))
 
-
-showBool b = if b then 'X' else '_'
 
 {------}
 

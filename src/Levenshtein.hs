@@ -67,3 +67,22 @@ minCost (c1, n1) (c2, n2) =
       LT -> (c1, n1)
       GT -> (c2, n2)
 
+-- xs is a superstring of ys
+buildIntermediate (x:xs) [] = [x]
+buildIntermediate (x:xs) (y:ys) =
+  if x == y
+  then x : buildIntermediate xs ys
+  else x : y : ys
+       
+       
+superstring (x:xs) (y:ys) (z:zs)
+  | z /= x     = x : superstring xs (y:ys) (z:zs)
+  | z /= y     = y : superstring (x:xs) ys (z:zs)
+  | otherwise  = z : superstring xs ys zs
+superstring xs ys [] = xs ++ ys
+
+substring (x:xs) (y:ys) (z:zs)
+  | z /= x     = substring (x:xs) ys zs
+  | z /= y     = substring xs (y:ys) zs
+  | otherwise  = z : substring xs ys zs
+substring _ _ _ = []

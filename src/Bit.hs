@@ -13,7 +13,8 @@ module Bit
      incrementFixedWidthInt,
      pruneZeroes,
      allBitStrings,
-     showBits
+     showBits,
+     showBits2
     )
 where
 
@@ -21,6 +22,8 @@ import Data.List(foldl')
 
 
 --Utility
+
+showBool b = if b then 'X' else '_'
 
 -- most significant bits first
 
@@ -97,3 +100,8 @@ showBits :: [Bool] -> String
 showBits = map f
   where f True  = '1'
         f False = '0'
+        
+showBits2 :: [Bool] -> String
+showBits2 = map f
+  where f True  = 'X'
+        f False = '_'

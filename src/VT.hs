@@ -2,10 +2,10 @@ module VT where
 
 import Bit(bitsToInt, allBitStrings)
 import SubsetSelection(allSubsets, allSubsetsOf, getSubset)
-import Data.Set(Set, fromList, unions, isSubsetOf)
-import Data.List
+import Data.Set(Set, fromList, unions, isSubsetOf, elems, size, intersection)
+import Data.List(sort, sortBy, mapAccumL, delete)
 --import Data.Graph.Inductive.Graph
-import Util(keepArg2)
+import Util(keepArg2, andTest, mapPair)
 import Data.Function(on)
 import Levenshtein(levDist)
 
@@ -46,6 +46,8 @@ vtClasses n = map (vtClass n) [0..n]
 
 vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + (max k (n - k)))) (allSubsets n k) 
 
+genWeight ws max = (`mod` max) . sum . getSubset ws 
+
 --------------------
 
 atMostSOnes n s = allSubsets n =<< [0..s]
@@ -64,12 +66,14 @@ insertion2 bs = snd . mapAccumL f bs
 allInsertions :: Int -> [Bool] -> [[Bool]]
 allInsertions s bs = map (insertion2 bs) (atMostSOnes (length bs + s) s)
 
-clique :: Int -> [Bool] -> [(Int,Int)]
-clique s = allPairs . sort . map bitsToInt . allInsertions s
+clique :: Int -> [Bool] -> [([Bool],[Bool])]
+clique s = allPairs . sort . allInsertions s
 
 levVertices = map (keepArg2 bitsToInt) . allBitStrings
 
-levEdges s n = fromList $ clique s =<< allBitStrings (n - s)
+levEdgeSet s n = fromList $ clique s =<< allBitStrings (n - s)
+
+levEdges s = elems . levEdgeSet s
 
 allPairs [] = []
 allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
@@ -89,9 +93,9 @@ countCliqueVT n = fff n . ggg $ vtClasses n
 countCliqueVTH n = zip [1..] $ fff n =<< cliqueCandidatesH n
 
 
-fff n = zip [1..] . testCliques (levEdges 1 n) 
+fff n = zip [1..] . testCliques (levEdgeSet 1 n) 
 
-ggg = map sort . sequence . map (map bitsToInt)
+ggg = map sort . sequence
 
 cliqueCandidatesH n = map (ggg . vthClasses n) [0..(n-1) `div` 2] 
 
@@ -116,3 +120,33 @@ deleteVertex v = map (delete v)
 metricGraph :: (Ord b) => (a -> a -> b) -> b -> [a] -> [(a,a)]
 metricGraph metric radius =
   filter ((radius >=) . uncurry metric) . allPairs
+
+
+partialComplement vs es = asymDiff (sort . allPairs . sort $ vs) (sort es)
+  where asymDiff [] _          = []
+        asymDiff xs []         = xs
+        asymDiff (x:xs) (y:ys) = case compare x y of
+          LT -> x : asymDiff xs ys
+          EQ -> asymDiff xs ys
+          GT -> asymDiff (x:xs) ys
+                      
+testColoring f = filter (uncurry (==) . mapPair f)
+
+--------------
+edgeCliqueSize :: Int -> [Bool] -> [Bool]  -> (Int, Int)
+edgeCliqueSize s a b =
+  (size (intersection as bs), size as)
+    where as = fromList $ allInsertions s a
+          bs = fromList $ allInsertions s b
+          
+
+tripleCliqueSize :: Int -> [Bool] -> [Bool] -> [Bool] -> (Int, Int)
+tripleCliqueSize s a b c = 
+  (ab + ac + bc - 2 * abc, size as)
+    where as = fromList $ allInsertions s a
+          bs = fromList $ allInsertions s b
+          cs = fromList $ allInsertions s c
+          ab = size $ intersection as bs
+          ac = size $ intersection as cs
+          bc = size $ intersection bs cs
+          abc = size $ intersection as (intersection bs cs)
