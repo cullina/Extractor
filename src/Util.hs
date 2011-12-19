@@ -1,6 +1,7 @@
 module Util where
 
 import Data.List(intercalate)
+import Data.Function(on)
 
 toList :: (a, [a]) -> [a]
 toList = uncurry (:)
@@ -83,3 +84,18 @@ minimumsSoFarBy comp (x:xs) = x : f x xs
           case comp x min of
             GT -> f min xs
             _  -> x : f x xs
+
+maximumsSoFarBy :: (a -> a -> Ordering) -> [a] -> [a]
+maximumsSoFarBy _ [] = []
+maximumsSoFarBy comp (x:xs) = x : f x xs 
+  where f _ [] = []
+        f max (x:xs) =
+          case comp x max of
+            LT -> f max xs
+            _  -> x : f x xs
+
+argMaximumsSoFar :: Ord b => (a -> b) -> [a] -> [(a,b)]
+argMaximumsSoFar f = maximumsSoFarBy (compare `on` snd) . map (keepArg f)
+
+diffs (x:y:xs) = y-x : diffs (y:xs)
+diffs _ =[]

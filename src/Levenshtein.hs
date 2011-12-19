@@ -66,9 +66,9 @@ minCost (c1, n1) (c2, n2) =
       EQ -> (c1, n1 + n2)
       LT -> (c1, n1)
       GT -> (c2, n2)
-
+{-
 -- xs is a superstring of ys
-buildIntermediate (x:xs) [] = [x]
+buildIntermediate (x:_) [] = [x]
 buildIntermediate (x:xs) (y:ys) =
   if x == y
   then x : buildIntermediate xs ys
@@ -86,3 +86,4 @@ substring (x:xs) (y:ys) (z:zs)
   | z /= y     = substring xs (y:ys) zs
   | otherwise  = z : substring xs ys zs
 substring _ _ _ = []
+-}

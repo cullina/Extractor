@@ -13,6 +13,7 @@ module Bit
      incrementFixedWidthInt,
      pruneZeroes,
      allBitStrings,
+     showBool,
      showBits,
      showBits2
     )

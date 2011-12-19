@@ -5,6 +5,7 @@ module SubsetSelection
        , subsetFromUniform
        , subsetDist
        , allSubsets
+       , allSubsets2
        , allSubsetsOf
        , getSubset
        , subsetToIndex
@@ -68,9 +69,18 @@ subsetDist n k
     where left  = (True :)  <$> subsetDist (n - 1) (k - 1)
           right = (False :) <$> subsetDist (n - 1) k
   
-
 allSubsets :: (Integral a) => a -> a -> [[Bool]]
-allSubsets n = support . subsetDist n
+allSubsets n k
+  | n == 0    = [[]]
+  | k == 0    = right
+  | k == n    = left  
+  | otherwise = left ++ right
+    where left  = (True :)  <$> allSubsets (n - 1) (k - 1)
+          right = (False :) <$> allSubsets (n - 1) k
+  
+
+allSubsets2 :: (Integral a) => a -> a -> [[Bool]]
+allSubsets2 n = support . subsetDist n
 
 allSubsetsOf k set = map (getSubset set) $ allSubsets (length set) k
 
