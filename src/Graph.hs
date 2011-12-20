@@ -16,6 +16,9 @@ fromDirEdgeList (DirEdgeList x) = x
 fromFullAdj (FullAdj x)         = x
 fromFwdAdj (FwdAdj x)           = x
 
+fstVertex :: (FwdAdj a) -> Maybe (a, FwdAdj a) 
+fstVertex (FwdAdj []) = Nothing
+fstVertex (FwdAdj (v:vs)) = Just (v, FwdAdj vs)
 
 adjList :: (Ord a, Eq a) => EdgeList a -> FwdAdj a
 adjList = removeBackLinks . adjListFull
