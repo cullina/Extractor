@@ -99,3 +99,6 @@ argMaximumsSoFar f = maximumsSoFarBy (compare `on` snd) . map (keepArg f)
 
 diffs (x:y:xs) = y-x : diffs (y:xs)
 diffs _ =[]
+
+partition :: [(Bool, a)] -> ([a],[a])
+partition xs = (map snd $ filter fst xs, map snd $ filter (not . fst) xs)

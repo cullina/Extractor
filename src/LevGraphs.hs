@@ -60,8 +60,8 @@ levelCliques :: Int -> Int -> [[[Bool]]]
 levelCliques k n = map allSingleOneInsertions  (allSubsets (n - 1) (k - 1)) ++ 
                    map allSingleZeroInsertions (allSubsets (n - 1) k)
 
-mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> [(b,b)]
-mergeCliques f = elems . fromList . concatMap (allPairs . sort . map f)
+mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> EdgeList b
+mergeCliques f = EdgeList . elems . fromList . concatMap (allPairs . sort . map f)
 
 allPairs [] = []
 allPairs (x:xs) = map ((,) x) xs ++ allPairs xs

@@ -6,61 +6,78 @@ import Data.Set(Set, member)
 import Data.Maybe(fromJust)
 import Util(andTest, mapFst, mapSnd)
 
-adjList :: (Ord a, Eq a) => [(a,a)] -> [(a,[a])]
+newtype EdgeList a    = EdgeList [(a,a)]
+newtype DirEdgeList a = DirEdgeList [(a,a)]
+newtype FullAdj a     = FullAdj [(a,[a])]
+newtype FwdAdj a      = FwdAdj [(a,[a])]
+
+fromEdgeList (EdgeList x)       = x
+fromDirEdgeList (DirEdgeList x) = x
+fromFullAdj (FullAdj x)         = x
+fromFwdAdj (FwdAdj x)           = x
+
+
+adjList :: (Ord a, Eq a) => EdgeList a -> FwdAdj a
 adjList = removeBackLinks . adjListFull
 
-adjListFull :: (Ord a, Eq a) => [(a,a)] -> [(a,[a])]
-adjListFull = groupByFst . sort . addReverses
+adjListFull :: (Ord a, Eq a) => EdgeList a -> FullAdj a
+adjListFull = FullAdj . groupByFst . sort . fromDirEdgeList . addReverses
 
-sortByDegree :: (Ord a, Eq a) => [(a,[a])] -> [(Int,[Int])]
-sortByDegree xs =  
-  let list = map fst $ sortBy (compare `on` (length . snd)) xs
-  in relabelGraph (fromJust . flip elemIndex list) xs
+sortEdges :: (Ord a) => DirEdgeList a -> DirEdgeList a
+sortEdges (DirEdgeList es) = DirEdgeList (sort es)
+
+sortByDegree :: (Ord a, Eq a) => FullAdj a -> FullAdj Int
+sortByDegree (FullAdj xs) =  
+  let list = map fst $ sortBy (flip (compare `on` (length . snd))) xs
+  in FullAdj $ relabelGraph (fromJust . flip elemIndex list) xs
      
-adjListByDeg :: (Ord a, Eq a) => [(a,a)] -> [(Int,[Int])]
+adjListByDeg :: (Ord a, Eq a) => EdgeList a -> FwdAdj Int
 adjListByDeg = removeBackLinks . sortByDegree . adjListFull
 
 relabelGraph :: (Ord b, Eq b) => (a -> b) -> [(a,[a])] -> [(b,[b])]
 relabelGraph f = sort . map (mapFst f . mapSnd (sort . map f)) 
 
 
-addReverses :: [(a,a)] -> [(a,a)]
-addReverses = concatMap f
+addReverses :: EdgeList a -> DirEdgeList a
+addReverses (EdgeList es) = DirEdgeList $ concatMap f es
   where
     f (x,y) = [(x,y),(y,x)]
 
-removeBackLinks :: Ord a => [(a,[a])] -> [(a,[a])]
-removeBackLinks = map f
+removeBackLinks :: Ord a => FullAdj a -> FwdAdj a
+removeBackLinks = FwdAdj . map f . fromFullAdj
   where
     f (x, ys) = (x, filter (x <) ys)
 
-groupByFst :: Eq a =>  [(a,a)] -> [(a,[a])]
+groupByFst :: Eq a => [(a,a)] -> [(a,[a])]
 groupByFst [] = []
 groupByFst ((x,y):es) = 
   let (as, bs) = span ((x ==) . fst) es
   in (x, y : map snd as) : groupByFst bs
                       
-edgeList :: [(a,[a])] -> [(a,a)]
-edgeList = concatMap f
+edgeList :: FwdAdj a -> EdgeList a
+edgeList (FwdAdj xs) = EdgeList $ concatMap f xs
   where 
     f (x, ys) = map ((,) x) ys
 
 
-induceSubgraph :: Ord a => Set a -> [(a,a)] -> [(a,a)]
+induceSubgraph :: Ord a => Set a -> EdgeList a -> EdgeList a
 induceSubgraph vSet = induceSubgraphByTest ((flip member) vSet)
         
-induceSubgraphByTest :: (a -> Bool) -> [(a,a)] -> [(a,a)]
-induceSubgraphByTest test = filter (andTest (test . fst) (test .snd))
+induceSubgraphByTest :: (a -> Bool) -> EdgeList a -> EdgeList a
+induceSubgraphByTest test (EdgeList es) = 
+  EdgeList $ filter (andTest (test . fst) (test .snd)) es
 
 ------------------
 
-matrixSquare :: Ord a => [(a,[a])] -> [(a,a)]
-matrixSquare [] = []
-matrixSquare (x:xs) = concatMap (f x) xs ++ matrixSquare xs
-  where f (x,xs) (y,ys) = 
-          if intersect xs ys
-          then [(x,y)]
-          else []
+matrixSquare :: Ord a => FullAdj a -> EdgeList a
+matrixSquare (FullAdj xs) = EdgeList $ mS xs
+  where 
+    mS [] = []
+    mS (x:xs) = concatMap (f x) xs ++ mS xs
+    f (x,xs) (y,ys) = 
+      if intersect xs ys
+      then [(x,y)]
+      else []
 
 intersect :: Ord a => [a] -> [a] -> Bool
 intersect _ [] = False
