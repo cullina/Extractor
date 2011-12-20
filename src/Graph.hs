@@ -1,6 +1,6 @@
 module Graph where
 
-import Data.List(sort, sortBy, span, elemIndex)
+import Data.List(sort, sortBy, span, elemIndex, delete, minimumBy, unfoldr)
 import Data.Function(on)
 import Data.Set(Set, member)
 import Data.Maybe(fromJust)
@@ -104,3 +104,26 @@ removeSubsets :: Ord a => [[a]] -> [[a]]
 removeSubsets [] = []
 removeSubsets (x:xs) = x : removeSubsets (filter (not . contains x) xs)
 
+degeneracy :: Eq a => FullAdj a -> Int
+degeneracy = (1 +) . maximum . degenSequence
+
+degenSequence :: Eq a => FullAdj a -> [Int]
+degenSequence = unfoldr dS
+  where dS (FullAdj []) = Nothing
+        dS g =  
+          let (v, n) = minDegree g
+          in Just (n, deleteVertex v g)
+
+minDegree :: FullAdj a -> (a, Int)
+minDegree = 
+  minimumBy (compare `on` snd) . map (mapSnd length) . fromFullAdj
+      
+
+deleteVertex :: Eq a => a -> FullAdj a -> FullAdj a
+deleteVertex v = FullAdj . dV v . fromFullAdj
+  where 
+    dV v [] = []
+    dV v ((x,ys):es)
+      | v == x    = dV v es
+      | otherwise = (x , delete v ys) : dV v es
+  

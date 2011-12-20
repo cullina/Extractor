@@ -53,3 +53,6 @@ maxIndepSets = f . fromFwdAdj
       in if length rest > 1
          then is ++ f g
          else is
+
+--------------------
+
