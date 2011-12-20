@@ -16,7 +16,7 @@ fromDirEdgeList (DirEdgeList x) = x
 fromFullAdj (FullAdj x)         = x
 fromFwdAdj (FwdAdj x)           = x
 
-fstVertex :: (FwdAdj a) -> Maybe (a, FwdAdj a) 
+fstVertex :: (FwdAdj a) -> Maybe ((a,[a]), FwdAdj a) 
 fstVertex (FwdAdj []) = Nothing
 fstVertex (FwdAdj (v:vs)) = Just (v, FwdAdj vs)
 
