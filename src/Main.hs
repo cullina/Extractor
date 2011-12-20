@@ -9,7 +9,7 @@ import System.Environment(getArgs)
 
 main = do
   [k,n] <- fmap (map read) getArgs
-  testTwo k n
+  testSix k n
 
 testOne = mapM print $ concatMap countCliqueVTH' [2..10]
 
@@ -25,3 +25,5 @@ f k = g . levLevelTwoEdges k
 
 g :: (Ord a) => EdgeList a -> IO [()]
 g = mapM print . argMaximumsSoFar length . maxCliques . adjListByDeg
+
+testSix k n = mapM (print . degreeData . adjListFull . levEdges k) [1..n]

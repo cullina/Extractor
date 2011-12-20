@@ -1,9 +1,11 @@
 module Graph where
 
-import Data.List(sort, sortBy, span, elemIndex, delete, minimumBy, unfoldr)
+import Data.List(sort, sortBy, span, elemIndex, delete, minimumBy, maximumBy, unfoldr)
 import Data.Function(on)
 import Data.Set(Set, member)
 import Data.Maybe(fromJust)
+import Data.Ratio((%))
+import Bit(showBits)
 import Util(andTest, mapFst, mapSnd)
 
 newtype EdgeList a    = EdgeList [(a,a)]
@@ -111,13 +113,9 @@ degenSequence :: Eq a => FullAdj a -> [Int]
 degenSequence = unfoldr dS
   where dS (FullAdj []) = Nothing
         dS g =  
-          let (v, n) = minDegree g
+          let minDegree = minimumBy (compare `on` snd) . degrees 
+              (v, n) = minDegree g
           in Just (n, deleteVertex v g)
-
-minDegree :: FullAdj a -> (a, Int)
-minDegree = 
-  minimumBy (compare `on` snd) . map (mapSnd length) . fromFullAdj
-      
 
 deleteVertex :: Eq a => a -> FullAdj a -> FullAdj a
 deleteVertex v = FullAdj . dV v . fromFullAdj
@@ -126,4 +124,15 @@ deleteVertex v = FullAdj . dV v . fromFullAdj
     dV v ((x,ys):es)
       | v == x    = dV v es
       | otherwise = (x , delete v ys) : dV v es
-  
+
+degrees = map (mapSnd length) . fromFullAdj
+
+degreeData g =
+  let ds = degrees g
+      minim = mapFst showBits $ minimumBy (compare `on` snd) ds
+      maxim = mapFst showBits $ maximumBy (compare `on` snd) ds
+      n = length ds
+      m = sum $ map snd ds
+      av = fromIntegral m / fromIntegral n
+      sparsity = fromIntegral m / fromIntegral (n * (n-1))
+  in (n, minim, av, sparsity, log sparsity, maxim, degeneracy g)
