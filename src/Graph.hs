@@ -8,10 +8,10 @@ import Data.Ratio((%))
 import Bit(showBits)
 import Util(andTest, mapFst, mapSnd)
 
-newtype EdgeList a    = EdgeList [(a,a)]
-newtype DirEdgeList a = DirEdgeList [(a,a)]
-newtype FullAdj a     = FullAdj [(a,[a])]
-newtype FwdAdj a      = FwdAdj [(a,[a])]
+newtype EdgeList a    = EdgeList [(a,a)] deriving Show
+newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
+newtype FullAdj a     = FullAdj [(a,[a])] deriving Show
+newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
 
 fromEdgeList (EdgeList x)       = x
 fromDirEdgeList (DirEdgeList x) = x
@@ -107,7 +107,7 @@ removeSubsets [] = []
 removeSubsets (x:xs) = x : removeSubsets (filter (not . contains x) xs)
 
 degeneracy :: Eq a => FullAdj a -> Int
-degeneracy = (1 +) . maximum . degenSequence
+degeneracy = maximum . degenSequence
 
 degenSequence :: Eq a => FullAdj a -> [Int]
 degenSequence = unfoldr dS
@@ -136,3 +136,10 @@ degreeData g =
       av = fromIntegral m / fromIntegral n
       sparsity = fromIntegral m / fromIntegral (n * (n-1))
   in (n, minim, av, sparsity, log sparsity, maxim, degeneracy g)
+     
+argmaxDegree = mapFst showBits . maximumBy (compare `on` snd) . degrees
+
+argminDegree = mapFst showBits . minimumBy (compare `on` snd) . degrees
+
+maxDegree = maximum . map snd . degrees
+minDegree = minimum . map snd . degrees
