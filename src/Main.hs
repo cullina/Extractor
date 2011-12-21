@@ -23,6 +23,7 @@ test 2 = mapM (print . minDegree . adjListFull)
 test 3 = mapM (print . degeneracy . adjListFull)
 test 4 = mapM (print . maximum . map length . maxCliques . adjListByDeg)
 test 5 = mapM print . concatMap (argMaximumsSoFar length . maxCliques . adjListByDeg)
+test 6 = mapM print . concatMap (argMaximumsSoFar length . maxCliques . adjListFull)
 
 
 
