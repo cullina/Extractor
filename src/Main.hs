@@ -1,8 +1,8 @@
 module Main where
 
 import Graph
-import GraphAlgorithms(maxCliques)
-import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoEdges, hWeight, levEdges)
+import GraphAlgorithms(maxCliques, maxIndepSets)
+import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoEdges, hWeight, levEdges, vtZeroEdges)
 import LevTests(countCliqueVTH')
 import Util(argMaximumsSoFar)
 import System.Environment(getArgs)
@@ -16,15 +16,19 @@ gen 1 k n = map (levLevelIntEdges k) [k+1..n]
 gen 2 k n = map (\x -> levLevelIntEdges x (2*x)) [1..n]
 gen 3 k n = map (\x -> levLevelIntEdges x (3*x)) [1..n]
 gen 4 k n = map (levLevelTwoEdges k) [k+1..n]
+gen 5 k n = map (\x -> levLevelTwoEdges x (2*x)) [2..n]
+gen 6 k n = map (levLevelTwoEdges k) [n]
+gen 7 k n = map vtZeroEdges [2..n]
 
 test 0 = mapM (print . length . fromEdgeList)
 test 1 = mapM (print . maxDegree . adjListFull)
 test 2 = mapM (print . minDegree . adjListFull)
 test 3 = mapM (print . degeneracy . adjListFull)
-test 4 = mapM (print . maximum . map length . maxCliques . adjListByDeg)
-test 5 = mapM print . concatMap (argMaximumsSoFar length . maxCliques . adjListByDeg)
-test 6 = mapM print . concatMap (argMaximumsSoFar length . maxCliques . adjListFull)
-
+test 4 = mapM (print . maximum . map length . maxCliques . adjList)
+test 5 = mapM print . concatMap (argMaximumsSoFar length . maxCliques . adjList)
+test 6 = mapM (print . maximum . map length . maxIndepSets . adjList)
+test 7 = mapM print . concatMap (argMaximumsSoFar length . maxIndepSets . adjList)
+test 8 = mapM (print . length . fromFullAdj . adjListFull)
 
 
 

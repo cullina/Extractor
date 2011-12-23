@@ -6,7 +6,7 @@ import Data.Set(Set, member)
 import Data.Maybe(fromJust)
 import Data.Ratio((%))
 import Bit(showBits)
-import Util(andTest, mapFst, mapSnd)
+import Util(andTest, mapFst, mapSnd, mapPair)
 
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
 newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
@@ -71,6 +71,9 @@ induceSubgraph vSet = induceSubgraphByTest ((flip member) vSet)
 induceSubgraphByTest :: (a -> Bool) -> EdgeList a -> EdgeList a
 induceSubgraphByTest test (EdgeList es) = 
   EdgeList $ filter (andTest (test . fst) (test .snd)) es
+
+renameVertices :: (a -> b) -> EdgeList a -> EdgeList b
+renameVertices f = EdgeList . map (mapPair f) . fromEdgeList
 
 ------------------
 

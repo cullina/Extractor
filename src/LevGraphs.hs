@@ -89,4 +89,5 @@ vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + (max k (n - k)))) (allSubse
 genWeight ws max = (`mod` max) . sum . getSubset ws 
 
 --------------------
-
+vtZeroEdges :: Int -> EdgeList Int
+vtZeroEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) . levEdges 2 $ n
