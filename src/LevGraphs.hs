@@ -91,3 +91,5 @@ genWeight ws max = (`mod` max) . sum . getSubset ws
 --------------------
 vtZeroEdges :: Int -> EdgeList Int
 vtZeroEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) . levEdges 2 $ n
+
+leLevelTwoEdges2 k = renameVertices bitsToInt . induceSubgraphByTest ((k ==) . hWeight) . levEdges 2 

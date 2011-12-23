@@ -19,6 +19,7 @@ gen 4 k n = map (levLevelTwoEdges k) [k+1..n]
 gen 5 k n = map (\x -> levLevelTwoEdges x (2*x)) [2..n]
 gen 6 k n = map (levLevelTwoEdges k) [n]
 gen 7 k n = map vtZeroEdges [2..n]
+gen 8 k n = map (levIntEdges k) [n]
 
 test 0 = mapM (print . length . fromEdgeList)
 test 1 = mapM (print . maxDegree . adjListFull)
