@@ -1,6 +1,7 @@
 module Util where
 
-import Data.List(intercalate)
+import Data.List(intercalate, sort, elemIndex)
+import Data.Maybe(fromJust)
 import Data.Function(on)
 
 toList :: (a, [a]) -> [a]
@@ -9,6 +10,13 @@ toList = uncurry (:)
 toNonemptyList :: [a] -> Maybe (a, [a])
 toNonemptyList []     = Nothing
 toNonemptyList (x:xs) = Just (x, xs)
+
+fromNonemptyList :: Maybe (a, [a]) -> [a]
+fromNonemptyList Nothing  = []
+fromNonemptyList (Just l) = toList l
+
+generalizeToList :: ((a, [a]) -> (a, [a])) -> [a] -> [a]
+generalizeToList f = fromNonemptyList . fmap f . toNonemptyList
 
 cons :: a -> (a, [a]) -> (a, [a])
 cons x xs = (x, toList xs)
@@ -102,3 +110,27 @@ diffs _ =[]
 
 partition :: [(Bool, a)] -> ([a],[a])
 partition xs = (map snd $ filter fst xs, map snd $ filter (not . fst) xs)
+
+{-
+group :: Eq a => [a] -> [(a,[a])]
+group []     = []
+group (x:xs) = toList $ foldr g ((x,[]),[]) xs
+  where 
+    g :: Eq a => a -> ((a,[a]),[(a,[a])]) -> ((a,[a]),[(a,[a])])
+    g z ((x,xs),ys)
+          | x == z    = ((z,x:xs), ys)
+          | otherwise = cons (x,xs) ((z,[]), ys)
+-}
+
+fastNub :: Ord a => [a] -> [a]
+fastNub = runs . sort
+  where 
+    runs []  = []
+    runs [x] = [x] 
+    runs (x:y:zs)
+      | x == y    = runs (y:zs)
+      | otherwise = x : runs (y:zs)
+                    
+                    
+toStandardInt :: Eq a => [a] -> a -> Int                    
+toStandardInt xs = (1 +) . fromJust . flip elemIndex xs

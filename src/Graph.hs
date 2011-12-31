@@ -6,7 +6,7 @@ import Data.Set(Set, member)
 import Data.Maybe(fromJust)
 import Data.Ratio((%))
 import Bit(showBits)
-import Util(andTest, mapFst, mapSnd, mapPair)
+import Util(andTest, mapFst, mapSnd, mapPair, fastNub, toStandardInt)
 
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
 newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
@@ -34,7 +34,7 @@ sortEdges (DirEdgeList es) = DirEdgeList (sort es)
 sortByDegree :: (Ord a, Eq a) => FullAdj a -> FullAdj Int
 sortByDegree (FullAdj xs) =  
   let list = map fst $ sortBy (flip (compare `on` (length . snd))) xs
-  in FullAdj $ relabelGraph (fromJust . flip elemIndex list) xs
+  in FullAdj $ relabelGraph (toStandardInt list) xs
      
 adjListByDeg :: (Ord a, Eq a) => EdgeList a -> FwdAdj Int
 adjListByDeg = removeBackLinks . sortByDegree . adjListFull
@@ -64,6 +64,25 @@ edgeList (FwdAdj xs) = EdgeList $ concatMap f xs
   where 
     f (x, ys) = map ((,) x) ys
 
+
+vertexList :: Ord a => EdgeList a -> [a]
+vertexList = fastNub . concatMap f . fromEdgeList
+  where f (x,y) = [x,y]
+        
+standardizeVertices :: (Eq a, Ord a) => EdgeList a -> EdgeList Int
+standardizeVertices es = renameVertices (toStandardInt (vertexList es)) es
+
+graphFile :: (Eq a, Ord a) => EdgeList a -> String
+graphFile es = 
+  let nv = length $ vertexList es
+      ne = length $ fromEdgeList es
+      se = fromEdgeList $ standardizeVertices es
+  in concatMap graphFileLine $ (nv, ne) : se
+      
+graphFileLine :: (Int, Int) -> String
+graphFileLine (x, y) = show x ++ " " ++ show y ++ "\n"
+
+--------
 
 induceSubgraph :: Ord a => Set a -> EdgeList a -> EdgeList a
 induceSubgraph vSet = induceSubgraphByTest ((flip member) vSet)
@@ -146,3 +165,20 @@ argminDegree = mapFst showBits . minimumBy (compare `on` snd) . degrees
 
 maxDegree = maximum . map snd . degrees
 minDegree = minimum . map snd . degrees
+
+
+-----
+
+allPairs [] = []
+allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
+
+complement :: (Eq a, Ord a) => EdgeList a -> EdgeList a
+complement es = EdgeList $ asymDiff (allPairs (vertexList es)) (sort (fromEdgeList es))
+
+asymDiff [] _          = []
+asymDiff xs []         = xs
+asymDiff (x:xs) (y:ys) = 
+  case compare x y of
+    LT -> x : asymDiff xs (y:ys)
+    EQ -> asymDiff xs ys
+    GT -> asymDiff (x:xs) ys

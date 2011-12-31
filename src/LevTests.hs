@@ -1,7 +1,7 @@
 module LevTests where
 
 import LevGraphs
-
+import Graph(allPairs)
 
 import Data.Set(Set, fromList, isSubsetOf, member, elems, size, intersection)
 import Data.List(sort, sortBy, delete)

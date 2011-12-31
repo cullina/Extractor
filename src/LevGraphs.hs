@@ -2,11 +2,12 @@ module LevGraphs where
 
 import Graph
 
-import Bit(bitsToInt, allBitStrings)
+import Bit(bitsToInt, allBitStrings, xor)
 import SubsetSelection(allSubsets, allSubsetsOf, getSubset)
-import Util(keepArg2)
-import Data.Set(fromList, elems)
+import Util(keepArg2, fastNub)
 import Data.List(sort, mapAccumL)
+import Data.Set(fromList)
+import Control.Monad((<=<))
 
 allSingleInsertions :: [Bool] -> [[Bool]]
 allSingleInsertions []     = [[True],[False]]
@@ -40,6 +41,9 @@ insertion2 bs = snd . mapAccumL f bs
 allInsertions :: Int -> [Bool] -> [[Bool]]
 allInsertions s bs = map (insertion2 bs) (atMostSOnes (length bs + s) s)
 
+allDeletions :: Ord a => Int -> [a] ->[[a]]
+allDeletions s bs = fastNub . map (getSubset bs . map not) . allSubsets (length bs) $ s
+
 levVertices = map (keepArg2 bitsToInt) . allBitStrings
 
 levEdgeSet s = fromList . concatMap (allPairs . sort) . basicCliques s
@@ -61,10 +65,7 @@ levelCliques k n = map allSingleOneInsertions  (allSubsets (n - 1) (k - 1)) ++
                    map allSingleZeroInsertions (allSubsets (n - 1) k)
 
 mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> EdgeList b
-mergeCliques f = EdgeList . elems . fromList . concatMap (allPairs . sort . map f)
-
-allPairs [] = []
-allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
+mergeCliques f = EdgeList . fastNub . concatMap (allPairs . sort . map f)
 
 -------------------------
 hWeight = length . filter id
@@ -93,3 +94,16 @@ vtZeroEdges :: Int -> EdgeList Int
 vtZeroEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) . levEdges 2 $ n
 
 leLevelTwoEdges2 k = renameVertices bitsToInt . induceSubgraphByTest ((k ==) . hWeight) . levEdges 2 
+
+-------------------
+
+neighborhood :: Int -> [Bool] -> Int
+neighborhood s = length . fastNub . map bitsToInt . (allInsertions s <=< allDeletions s)
+
+----
+
+fromBlocks :: [Int] -> [Bool]
+fromBlocks ns = zipWith xor alt . concatMap (uncurry replicate) $ zip ns alt
+  where alt = concat (repeat [False,True])
+        
+evenBlocks k m = fromBlocks $ replicate k m

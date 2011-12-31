@@ -4,3 +4,4 @@
 *.dat
 *.png
 /dist/
+/graphs/
