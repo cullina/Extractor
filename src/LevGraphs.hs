@@ -56,7 +56,9 @@ levLevelEdges k = mergeCliques id . levelCliques k
 
 levLevelIntEdges k = mergeCliques bitsToInt . levelCliques k
 
-levLevelTwoEdges k = matrixSquare . adjListFull . levLevelIntEdges k
+levLevelTwoEdges k = matrixSquare . adjListFull . levLevelEdges k
+
+levLevelTwoIntEdges k = matrixSquare . adjListFull . levLevelIntEdges k
 
 basicCliques s n = map (allInsertions s) (allBitStrings (n - s))
 
@@ -91,10 +93,12 @@ genWeight ws max = (`mod` max) . sum . getSubset ws
 
 --------------------
 vtZeroEdges :: Int -> EdgeList Int
-vtZeroEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) . levEdges 2 $ n
+vtZeroEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) $ levEdges 2 n
 
 leLevelTwoEdges2 k = renameVertices bitsToInt . induceSubgraphByTest ((k ==) . hWeight) . levEdges 2 
 
+vtZeroLevelEdges :: Int -> EdgeList Int
+vtZeroLevelEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) $ levLevelTwoEdges n (2*n)
 -------------------
 
 neighborhood :: Int -> [Bool] -> Int
@@ -107,3 +111,9 @@ fromBlocks ns = zipWith xor alt . concatMap (uncurry replicate) $ zip ns alt
   where alt = concat (repeat [False,True])
         
 evenBlocks k m = fromBlocks $ replicate k m
+
+----
+
+allMirror :: Int -> [[Bool]]
+allMirror = map f . allBitStrings
+  where f bs = bs ++ reverse (map not bs)

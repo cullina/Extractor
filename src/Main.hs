@@ -2,7 +2,7 @@ module Main where
 
 import Graph
 import GraphAlgorithms(maxCliques, maxIndepSets)
-import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoEdges, hWeight, levEdges, vtZeroEdges)
+import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoIntEdges, hWeight, levEdges, vtZeroEdges, vtZeroLevelEdges)
 import LevTests(countCliqueVTH')
 import Util(argMaximumsSoFar)
 import System.Environment(getArgs)
@@ -15,11 +15,12 @@ gen 0 k n = map (levIntEdges k) [1..n]
 gen 1 k n = map (levLevelIntEdges k) [k+1..n]
 gen 2 k n = map (\x -> levLevelIntEdges x (2*x)) [1..n]
 gen 3 k n = map (\x -> levLevelIntEdges x (3*x)) [1..n]
-gen 4 k n = map (levLevelTwoEdges k) [k+1..n]
-gen 5 k n = map (\x -> levLevelTwoEdges x (2*x)) [2..n]
-gen 6 k n = map (levLevelTwoEdges k) [n]
+gen 4 k n = map (levLevelTwoIntEdges k) [k+1..n]
+gen 5 k n = map (\x -> levLevelTwoIntEdges x (2*x)) [2..n]
+gen 6 k n = map (levLevelTwoIntEdges k) [n]
 gen 7 k n = map vtZeroEdges [2..n]
 gen 8 k n = map (levIntEdges k) [n]
+gen 9 k n = map vtZeroLevelEdges [2..n]
 
 test 0 = mapM (print . length . fromEdgeList)
 test 1 = mapM (print . maxDegree . adjListFull)
