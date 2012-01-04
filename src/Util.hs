@@ -131,6 +131,16 @@ fastNub = runs . sort
       | x == y    = runs (y:zs)
       | otherwise = x : runs (y:zs)
                     
+
+fastHist :: Ord a => [a] -> [(a,Int)]
+fastHist = h . sort
+  where
+    h []     = []
+    h (x:xs) = g (x,1) xs
+    g t []   = [t]
+    g (x,n) (y:ys)
+      | x == y    = g (x, n+1) ys
+      | otherwise = (x,n) : g (y,1) ys
                     
 toStandardInt :: Eq a => [a] -> a -> Int                    
 toStandardInt xs = (1 +) . fromJust . flip elemIndex xs

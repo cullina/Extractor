@@ -54,5 +54,9 @@ maxIndepSets = f . fromFwdAdj
          then is ++ f g
          else is
 
+
+greedyIndepSet = head . maxIndepSets
+
+greedyClique = head . maxClique
 --------------------
 
