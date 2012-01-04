@@ -2,7 +2,7 @@ module GraphAlgorithms where
 
 import Graph
 import Util(partition, mapFst, mapSnd)
-       
+import ListSet(contains)       
 
 removeNeighbors :: Ord a => [a] -> [(a,[a])] -> [(a,[a])]
 removeNeighbors [] es = es
@@ -43,6 +43,18 @@ maxCliques = f . fromFwdAdj
          then is ++ f g
          else is
 
+allMaxCliques :: Ord a => FwdAdj a -> [[a]]
+allMaxCliques = f . fromFwdAdj
+  where
+    f []         = [[]]
+    f ((x,ys):g) = 
+      let (kept, rest) = partitionNeighbors ys g
+          is = map (x :) (f kept)
+      in if null rest
+         then is   
+         else is ++ filter (not . contains (map fst kept)) (f g)
+
+
 maxIndepSets :: Ord a => FwdAdj a -> [[a]]
 maxIndepSets = f . fromFwdAdj
   where
@@ -54,9 +66,21 @@ maxIndepSets = f . fromFwdAdj
          then is ++ f g
          else is
 
+allMaxIndepSets :: Ord a => FwdAdj a -> [[a]]
+allMaxIndepSets = f . fromFwdAdj
+  where
+    f []         = [[]]
+    f ((x,ys):g) = 
+      let (rest, kept) = partitionNeighbors ys g
+          is = map (x :) (f kept)
+      in if null rest
+         then is   
+         else is ++ filter (not . contains (map fst kept)) (f g)
 
+greedyIndepSet :: Ord a => FwdAdj a -> [a]
 greedyIndepSet = head . maxIndepSets
 
-greedyClique = head . maxClique
+greedyClique :: Ord a => FwdAdj a -> [a]
+greedyClique = head . maxCliques
 --------------------
 

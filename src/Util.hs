@@ -65,9 +65,9 @@ maybePred :: (Integral a) => a -> Maybe a
 maybePred 0 = Nothing
 maybePred n = Just (n - 1)
 
-churchEncoding :: (Integral a) => a -> (b -> b) -> b -> b
-churchEncoding 0 _ = id
-churchEncoding n f = f . churchEncoding (n - 1) f
+church :: (Integral a) => a -> (b -> b) -> b -> b
+church 0 _ = id
+church n f = f . church (n - 1) f
 
 
 splitJoin :: (b -> b -> c) -> (a -> b) -> (a -> b) -> a -> c
@@ -122,25 +122,6 @@ group (x:xs) = toList $ foldr g ((x,[]),[]) xs
           | otherwise = cons (x,xs) ((z,[]), ys)
 -}
 
-fastNub :: Ord a => [a] -> [a]
-fastNub = runs . sort
-  where 
-    runs []  = []
-    runs [x] = [x] 
-    runs (x:y:zs)
-      | x == y    = runs (y:zs)
-      | otherwise = x : runs (y:zs)
-                    
-
-fastHist :: Ord a => [a] -> [(a,Int)]
-fastHist = h . sort
-  where
-    h []     = []
-    h (x:xs) = g (x,1) xs
-    g t []   = [t]
-    g (x,n) (y:ys)
-      | x == y    = g (x, n+1) ys
-      | otherwise = (x,n) : g (y,1) ys
                     
 toStandardInt :: Eq a => [a] -> a -> Int                    
 toStandardInt xs = (1 +) . fromJust . flip elemIndex xs

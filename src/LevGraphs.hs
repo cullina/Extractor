@@ -4,7 +4,8 @@ import Graph
 
 import Bit(bitsToInt, allBitStrings, xor)
 import SubsetSelection(allSubsets, allSubsetsOf, getSubset)
-import Util(keepArg2, fastNub)
+import Util(keepArg2, church)
+import ListSet(listSetFromList)
 import Data.List(sort, mapAccumL)
 import Data.Set(fromList)
 import Control.Monad((<=<))
@@ -42,7 +43,9 @@ allInsertions :: Int -> [Bool] -> [[Bool]]
 allInsertions s bs = map (insertion2 bs) (atMostSOnes (length bs + s) s)
 
 allDeletions :: Ord a => Int -> [a] ->[[a]]
-allDeletions s bs = fastNub . map (getSubset bs . map not) . allSubsets (length bs) $ s
+allDeletions s bs = listSetFromList . map (getSubset bs . map not) . allSubsets (length bs) $ s
+
+dSize s = length . allDeletions s
 
 levVertices = map (keepArg2 bitsToInt) . allBitStrings
 
@@ -67,7 +70,7 @@ levelCliques k n = map allSingleOneInsertions  (allSubsets (n - 1) (k - 1)) ++
                    map allSingleZeroInsertions (allSubsets (n - 1) k)
 
 mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> EdgeList b
-mergeCliques f = EdgeList . fastNub . concatMap (allPairs . sort . map f)
+mergeCliques f = EdgeList . listSetFromList . concatMap (allPairs . sort . map f)
 
 -------------------------
 hWeight = length . filter id
@@ -102,18 +105,32 @@ vtZeroLevelEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . v
 -------------------
 
 neighborhood :: Int -> [Bool] -> Int
-neighborhood s = length . fastNub . map bitsToInt . (allInsertions s <=< allDeletions s)
+neighborhood s = length . listSetFromList . map bitsToInt . (allInsertions s <=< allDeletions s)
 
 ----
 
-fromBlocks :: [Int] -> [Bool]
-fromBlocks ns = zipWith xor alt . concatMap (uncurry replicate) $ zip ns alt
+fromAntiruns :: [Int] -> [Bool]
+fromAntiruns = zipWith xor alt . fromRuns
+  where alt = concat (repeat [False,True])
+
+fromRuns :: [Int] -> [Bool]
+fromRuns ns = concatMap (uncurry replicate) $ zip ns alt
   where alt = concat (repeat [False,True])
         
-evenBlocks k m = fromBlocks $ replicate k m
+evenAntiruns k m = fromAntiruns $ replicate k m
 
 ----
 
 allMirror :: Int -> [[Bool]]
 allMirror = map f . allBitStrings
   where f bs = bs ++ reverse (map not bs)
+
+----------
+
+derivative :: [Bool] -> [Bool]
+derivative [] = []
+derivative [_] = []
+derivative (x:y:zs) = (xor x y) : derivative (y:zs)
+
+hn :: Int -> [Bool] -> Int
+hn n = hWeight . church n derivative

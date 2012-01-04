@@ -6,7 +6,9 @@ import Data.Set(Set, member)
 import Data.Maybe(fromJust)
 import Data.Ratio((%))
 import Bit(showBits)
-import Util(andTest, mapFst, mapSnd, mapPair, fastNub, toStandardInt)
+import Util(andTest, mapFst, mapSnd, mapPair, toStandardInt)
+import ListSet
+
 
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
 newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
@@ -66,7 +68,7 @@ edgeList (FwdAdj xs) = EdgeList $ concatMap f xs
 
 
 vertexList :: Ord a => EdgeList a -> [a]
-vertexList = fastNub . concatMap f . fromEdgeList
+vertexList = listSetFromList . concatMap f . fromEdgeList
   where f (x,y) = [x,y]
         
 standardizeVertices :: (Eq a, Ord a) => EdgeList a -> EdgeList Int
@@ -105,28 +107,6 @@ matrixSquare (FullAdj xs) = EdgeList $ mS xs
       if intersect xs ys
       then [(x,y)]
       else []
-
-intersect :: Ord a => [a] -> [a] -> Bool
-intersect _ [] = False
-intersect [] _ = False
-intersect (x:xs) (y:ys) =
-  case compare x y of
-    EQ -> True
-    LT -> intersect xs (y:ys)
-    GT -> intersect (x:xs) ys
-
-contains :: Ord a => [a] -> [a] -> Bool
-contains _ [] = True
-contains [] _ = False
-contains (x:xs) (y:ys) =
-  case compare x y of
-    EQ -> contains xs ys
-    LT -> contains xs (y:ys)
-    GT -> False
-    
-removeSubsets :: Ord a => [[a]] -> [[a]]
-removeSubsets [] = []
-removeSubsets (x:xs) = x : removeSubsets (filter (not . contains x) xs)
 
 degeneracy :: Eq a => FullAdj a -> Int
 degeneracy = maximum . degenSequence
@@ -175,10 +155,3 @@ allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
 complement :: (Eq a, Ord a) => EdgeList a -> EdgeList a
 complement es = EdgeList $ asymDiff (allPairs (vertexList es)) (sort (fromEdgeList es))
 
-asymDiff [] _          = []
-asymDiff xs []         = xs
-asymDiff (x:xs) (y:ys) = 
-  case compare x y of
-    LT -> x : asymDiff xs (y:ys)
-    EQ -> asymDiff xs ys
-    GT -> asymDiff (x:xs) ys
