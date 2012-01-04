@@ -24,14 +24,27 @@ fstVertex :: (FwdAdj a) -> Maybe ((a,[a]), FwdAdj a)
 fstVertex (FwdAdj []) = Nothing
 fstVertex (FwdAdj (v:vs)) = Just (v, FwdAdj vs)
 
+adjListFull :: (Ord a, Eq a) => EdgeList a -> FullAdj a
+adjListFull es = FullAdj . map (neighbors es) $ vertexList es
+
+neighbors :: Eq a => EdgeList a -> a -> (a,[a])
+neighbors g x = (x, concatMap (f x) $ fromEdgeList g)
+  where 
+    f x (y,z)
+      | x == y    = [z]
+      | x == z    = [y]
+      | otherwise = []
+
+deleteVertexEL :: Eq a => a -> EdgeList a -> EdgeList a
+deleteVertexEL x = EdgeList . filter (f x) . fromEdgeList
+  where
+    f x (y,z) = (x /= y) && (x /= z)
+
 adjList :: (Ord a, Eq a) => EdgeList a -> FwdAdj a
 adjList = removeBackLinks . adjListFull
 
-adjListFull :: (Ord a, Eq a) => EdgeList a -> FullAdj a
-adjListFull = FullAdj . groupByFst . sort . fromDirEdgeList . addReverses
-
-sortEdges :: (Ord a) => DirEdgeList a -> DirEdgeList a
-sortEdges (DirEdgeList es) = DirEdgeList (sort es)
+adjListFull2 :: (Ord a, Eq a) => EdgeList a -> FullAdj a
+adjListFull2 = FullAdj . groupByFst . sort . fromDirEdgeList . addReverses
 
 sortByDegree :: (Ord a, Eq a) => FullAdj a -> FullAdj Int
 sortByDegree (FullAdj xs) =  
@@ -65,7 +78,6 @@ edgeList :: FwdAdj a -> EdgeList a
 edgeList (FwdAdj xs) = EdgeList $ concatMap f xs
   where 
     f (x, ys) = map ((,) x) ys
-
 
 vertexList :: Ord a => EdgeList a -> [a]
 vertexList = listSetFromList . concatMap f . fromEdgeList
@@ -109,15 +121,15 @@ matrixSquare (FullAdj xs) = EdgeList $ mS xs
       else []
 
 degeneracy :: Eq a => FullAdj a -> Int
-degeneracy = maximum . degenSequence
+degeneracy = maximum . map snd . degenSequence
 
-degenSequence :: Eq a => FullAdj a -> [Int]
+degenSequence :: Eq a => FullAdj a -> [(a,Int)]
 degenSequence = unfoldr dS
   where dS (FullAdj []) = Nothing
         dS g =  
           let minDegree = minimumBy (compare `on` snd) . degrees 
               (v, n) = minDegree g
-          in Just (n, deleteVertex v g)
+          in Just ((v,n), deleteVertex v g)
 
 deleteVertex :: Eq a => a -> FullAdj a -> FullAdj a
 deleteVertex v = FullAdj . dV v . fromFullAdj
