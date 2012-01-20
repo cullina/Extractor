@@ -1,6 +1,6 @@
 module Util where
 
-import Data.List(intercalate, sort, elemIndex)
+import Data.List(intercalate, elemIndex)
 import Data.Maybe(fromJust)
 import Data.Function(on)
 
