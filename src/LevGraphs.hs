@@ -3,7 +3,7 @@ module LevGraphs where
 import Graph
 
 import Bit(bitsToInt, allBitStrings, xor)
-import SubsetSelection(allSubsets, allSubsetsOf, getSubset)
+import SubsetSelection(allSubsets, getSubset, subsetToInteger, choose)
 import Util(keepArg2, church)
 import ListSet(listSetFromList)
 import Data.List(sort, mapAccumL)
@@ -57,11 +57,17 @@ levIntEdges s = mergeCliques bitsToInt . basicCliques s
 
 levLevelEdges k = mergeCliques id . levelCliques k
 
-levLevelIntEdges k = mergeCliques bitsToInt . levelCliques k
+levLevelIntEdges :: Int -> Int -> EdgeList Int
+levLevelIntEdges k n = fromCEdgeList $ levLevelIntCEdges k n
+
+levLevelIntCEdges :: Int -> Int -> ContigEdgeList
+levLevelIntCEdges k n = CEdgeList (choose n k) es 
+  where 
+    es = mergeCliques subsetToInteger $ levelCliques k n
 
 levLevelTwoEdges k = matrixSquare . adjListFull . levLevelEdges k
 
-levLevelTwoIntEdges k = matrixSquare . adjListFull . levLevelIntEdges k
+levLevelTwoIntEdges k = arraySquare . adjArray . levLevelIntCEdges k
 
 basicCliques s n = map (allInsertions s) (allBitStrings (n - s))
 
@@ -98,7 +104,7 @@ genWeight ws max = (`mod` max) . sum . getSubset ws
 vtZeroEdges :: Int -> EdgeList Int
 vtZeroEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) $ levEdges 2 n
 
-leLevelTwoEdges2 k = renameVertices bitsToInt . induceSubgraphByTest ((k ==) . hWeight) . levEdges 2 
+levLevelTwoEdges2 k = renameVertices bitsToInt . induceSubgraphByTest ((k ==) . hWeight) . levEdges 2 
 
 vtZeroLevelEdges :: Int -> EdgeList Int
 vtZeroLevelEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) $ levLevelTwoEdges n (2*n)

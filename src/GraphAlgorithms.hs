@@ -1,12 +1,12 @@
 module GraphAlgorithms where
 
 import Graph
-import Util(partition, mapFst, mapSnd)
+import Util(mapFst, mapSnd)
 import ListSet(contains)       
 
 removeNeighbors :: Ord a => [a] -> [(a,[a])] -> [(a,[a])]
 removeNeighbors [] es = es
-removeNeighbors vs [] = []
+removeNeighbors _  [] = []
 removeNeighbors (v:vs) ((x,ys):es) = 
   case compare v x of 
     LT -> removeNeighbors vs ((x,ys):es)
@@ -14,8 +14,8 @@ removeNeighbors (v:vs) ((x,ys):es) =
     GT -> (x,ys) : removeNeighbors (v:vs) es
 
 keepNeighbors :: Ord a => [a] -> [(a,[a])] -> [(a,[a])]
-keepNeighbors [] es = []
-keepNeighbors vs [] = []
+keepNeighbors [] _  = []
+keepNeighbors _  [] = []
 keepNeighbors (v:vs) ((x,ys):es) = 
   case compare v x of 
     LT -> keepNeighbors vs ((x,ys):es)
@@ -23,7 +23,7 @@ keepNeighbors (v:vs) ((x,ys):es) =
     GT -> keepNeighbors (v:vs) es
 
 partitionNeighbors :: Ord a => [a] -> [(a,[a])] -> ( [(a,[a])] , [(a,[a])] )
-partitionNeighbors ns [] = ([],[])
+partitionNeighbors _  [] = ([],[])
 partitionNeighbors [] es = ([],es)
 partitionNeighbors (n:ns) ((x,ys):es) =
   case compare n x of 

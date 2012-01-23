@@ -46,17 +46,18 @@ Cabal-version:       >=1.2
 
 Executable clique
   Main-is: Main.hs   
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
-Library
+--Library
   -- Modules exported by the library.
-  Exposed-modules:     UniversalHash, UnbalancedTree, Sample, PrefixCode, Levenshtein, LempelZiv, FiniteVectorSpace, Fibonacci, BinaryFieldTransform, RandomDistribution, DoublyRandomValue, RandomStream
+  --Exposed-modules:     UniversalHash, UnbalancedTree, Sample, PrefixCode, Levenshtein, LempelZiv, FiniteVectorSpace, Fibonacci, BinaryFieldTransform, RandomDistribution, DoublyRandomValue, RandomStream
   
   -- Packages needed in order to build this package.
-  Build-depends:  base >= 4.0, mtl >= 2, random >= 1, containers
+  Build-depends:  base >= 4.0, mtl >= 2, random >= 1, containers, array
 
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts
-  hs-source-dirs:  src
+  --ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts
+  --hs-source-dirs:  src
   
   -- Modules not exported by this package.
   -- Other-modules:       

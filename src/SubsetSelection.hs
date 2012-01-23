@@ -9,6 +9,7 @@ module SubsetSelection
        , allSubsetsOf
        , getSubset
        , subsetToIndex
+       , subsetToInteger
        , partitionSubsets
        , unpartition
        , indicesToBitList
@@ -23,6 +24,7 @@ import Control.Applicative((<$>))
 
 -- Compute binomial coefficients
 
+choose :: (Integral a) => a -> a -> a
 choose n k = if 2 * k > n
              then choose' n (n - k)
              else choose' n k
@@ -49,7 +51,7 @@ subsetFromUniform = curry (unfoldr sFU)
               k'            = if d then k - 1 else k
           in Just (d, ((n - 1, k'), leftover))
 
---
+--        
 subsetToIndex :: (Integral a) => [Bool] -> ((a, a), UnifNat a)
 
 subsetToIndex = foldr sTI ((0, 0), mempty)
@@ -59,6 +61,8 @@ subsetToIndex = foldr sTI ((0, 0), mempty)
               i' = ratioUndecision (k' % n') (x, i)
           in ((n', k'), i')
 
+subsetToInteger :: (Integral a) => [Bool] -> a
+subsetToInteger = unifValue . snd . subsetToIndex
 
 subsetDist :: (Integral a) => a -> a -> Distribution a [Bool]
 subsetDist n k

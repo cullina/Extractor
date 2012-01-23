@@ -3,11 +3,11 @@ module LevTests where
 import LevGraphs
 import Graph(allPairs)
 
-import Data.Set(Set, fromList, isSubsetOf, member, elems, size, intersection)
+import Data.Set(fromList, isSubsetOf, size, intersection)
 import Data.List(sort, sortBy, delete)
 import Data.Function(on)
 import Bit(allBitStrings)
-import SubsetSelection(allSubsets, allSubsetsOf, getSubset)
+import SubsetSelection(allSubsetsOf)
 import Util(keepArg2, argMaximumsSoFar)
 
 testClique edgeSet vs = isSubsetOf cliqueEdgeSet edgeSet

@@ -1,11 +1,9 @@
 module Graph where
 
-import Data.List(sort, sortBy, span, elemIndex, delete, minimumBy, maximumBy, unfoldr)
+import Data.List(sort, sortBy)
+import Data.Array(Array, listArray, (!), range, bounds)
 import Data.Function(on)
 import Data.Set(Set, member)
-import Data.Maybe(fromJust)
-import Data.Ratio((%))
-import Bit(showBits)
 import Util(andTest, mapFst, mapSnd, mapPair, toStandardInt)
 import ListSet
 
@@ -14,11 +12,15 @@ newtype EdgeList a    = EdgeList [(a,a)] deriving Show
 newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
 newtype FullAdj a     = FullAdj [(a,[a])] deriving Show
 newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
+data ContigEdgeList = CEdgeList Int (EdgeList Int)
+
 
 fromEdgeList (EdgeList x)       = x
 fromDirEdgeList (DirEdgeList x) = x
 fromFullAdj (FullAdj x)         = x
 fromFwdAdj (FwdAdj x)           = x
+fromCEdgeList (CEdgeList _ x)   = x
+
 
 fstVertex :: (FwdAdj a) -> Maybe ((a,[a]), FwdAdj a) 
 fstVertex (FwdAdj []) = Nothing
@@ -34,6 +36,9 @@ neighbors g x = (x, concatMap (f x) $ fromEdgeList g)
       | x == y    = [z]
       | x == z    = [y]
       | otherwise = []
+
+adjArray :: ContigEdgeList -> Array Int [Int]
+adjArray (CEdgeList n es) = listArray (0,n-1) . map (snd . neighbors es) $ [0..n-1]
 
 deleteVertexEL :: Eq a => a -> EdgeList a -> EdgeList a
 deleteVertexEL x = EdgeList . filter (f x) . fromEdgeList
@@ -110,6 +115,23 @@ renameVertices f = EdgeList . map (mapPair f) . fromEdgeList
 
 ------------------
 
+arraySquare :: Array Int [Int] -> FullAdj Int
+arraySquare es = FullAdj . map squareRow . range . bounds $ es
+  where squareRow v = (v, listSetFromList $ within2 es v) 
+  
+within2 :: Array Int [Int] -> Int -> [Int] 
+within2 es v =
+  let vs = es ! v
+  in vs ++ concatMap (es !) vs
+
+withinN :: Array Int [Int] -> Int -> Int -> [Int] 
+withinN es 1 v = es ! v
+withinN es n v = 
+  let vs = es ! v
+  in vs ++ concatMap (withinN es (n-1)) vs
+    
+  
+
 matrixSquare :: Ord a => FullAdj a -> EdgeList a
 matrixSquare (FullAdj xs) = EdgeList $ mS xs
   where 
@@ -120,43 +142,9 @@ matrixSquare (FullAdj xs) = EdgeList $ mS xs
       then [(x,y)]
       else []
 
-degeneracy :: Eq a => FullAdj a -> Int
-degeneracy = maximum . map snd . degenSequence
+------------------
 
-degenSequence :: Eq a => FullAdj a -> [(a,Int)]
-degenSequence = unfoldr dS
-  where dS (FullAdj []) = Nothing
-        dS g =  
-          let minDegree = minimumBy (compare `on` snd) . degrees 
-              (v, n) = minDegree g
-          in Just ((v,n), deleteVertex v g)
 
-deleteVertex :: Eq a => a -> FullAdj a -> FullAdj a
-deleteVertex v = FullAdj . dV v . fromFullAdj
-  where 
-    dV v [] = []
-    dV v ((x,ys):es)
-      | v == x    = dV v es
-      | otherwise = (x , delete v ys) : dV v es
-
-degrees = map (mapSnd length) . fromFullAdj
-
-degreeData g =
-  let ds = degrees g
-      minim = mapFst showBits $ minimumBy (compare `on` snd) ds
-      maxim = mapFst showBits $ maximumBy (compare `on` snd) ds
-      n = length ds
-      m = sum $ map snd ds
-      av = fromIntegral m / fromIntegral n
-      sparsity = fromIntegral m / fromIntegral (n * (n-1))
-  in (n, minim, av, sparsity, log sparsity, maxim, degeneracy g)
-     
-argmaxDegree = mapFst showBits . maximumBy (compare `on` snd) . degrees
-
-argminDegree = mapFst showBits . minimumBy (compare `on` snd) . degrees
-
-maxDegree = maximum . map snd . degrees
-minDegree = minimum . map snd . degrees
 
 
 -----
