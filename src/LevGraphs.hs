@@ -5,10 +5,12 @@ import Graph
 import Bit(bitsToInt, allBitStrings, xor)
 import SubsetSelection(allSubsets, getSubset, subsetToInteger, choose)
 import Util(keepArg2, church)
-import ListSet(listSetFromList)
+import ListSet(listSetFromList, fastHist)
 import Data.List(sort, mapAccumL)
 import Data.Set(fromList)
+import Data.Maybe(catMaybes)
 import Control.Monad((<=<))
+import Control.Applicative((<$>))
 
 allSingleInsertions :: [Bool] -> [[Bool]]
 allSingleInsertions []     = [[True],[False]]
@@ -27,23 +29,56 @@ allSingleOneInsertions (False:bs) = (True : False : bs) : map (False :) (allSing
 
 atMostSOnes n s = allSubsets n =<< [0..s]
 
-insertion ps [] = ps
-insertion (True:ps)  (b:bs) = not b : insertion ps (b:bs)
-insertion (False:ps) (b:bs) = b : insertion ps bs
-insertion [] _ = []
+-- second arg should have at most s ones
+insertion :: [Bool] -> [Bool] -> [Bool]
+insertion [] ps = ps
+insertion (b:bs) (True:ps)  = not b : insertion (b:bs) ps
+insertion (b:bs) (False:ps) = b : insertion bs ps
+insertion _ [] = []
+
+
+deletion :: [Bool] -> [Bool] -> Maybe [Bool]
+deletion _      []         = Just []
+deletion []     (_:_)      = Nothing
+deletion (b:bs) (False:ps) = (b :) <$> deletion bs ps
+deletion (b:bs) (True:ps)  = ((not b) :) <$> (flip deletion ps =<< match (not b) bs)
+    
+match :: Bool -> [Bool] -> Maybe [Bool]
+match m []     = Nothing 
+match m (b:bs)
+  | m == b = Just bs
+  | otherwise = match m bs
+
 
 insertion2 :: [Bool] -> [Bool] -> [Bool]
 insertion2 bs = snd . mapAccumL f bs
-  where f []       p     = ([], p)
-        f bs@(b:_) True  = (bs, not b)
-        f (b:bs)   False = (bs, b)
+  where 
+    f []     p     = ([],   p)
+    f (b:bs) True  = (b:bs, not b)
+    f (b:bs) False = (bs,   b)
+
+deletion2 :: [Bool] -> [Bool] -> Maybe [Bool]
+deletion2 bs =  test . mapAccumL f (Just bs)
+  where 
+    f Nothing       p     = (Nothing, p)
+    f (Just [])     p     = (Nothing, p)
+    f (Just (b:bs)) True  = (match (not b) bs, not b)
+    f (Just (b:bs)) False = (Just bs, b)
+    
+    test (Just _, xs) = Just xs
+    test (Nothing, _) = Nothing
+
 
 
 allInsertions :: Int -> [Bool] -> [[Bool]]
 allInsertions s bs = map (insertion2 bs) (atMostSOnes (length bs + s) s)
 
-allDeletions :: Ord a => Int -> [a] ->[[a]]
-allDeletions s bs = listSetFromList . map (getSubset bs . map not) . allSubsets (length bs) $ s
+allDeletions :: Int -> [Bool] -> [[Bool]]
+allDeletions s bs = catMaybes $ map (deletion2 bs) (atMostSOnes (length bs - s) s)
+
+
+allDeletions2 :: Ord a => Int -> [a] ->[[a]]
+allDeletions2 s bs = listSetFromList . map (getSubset bs . map not) . allSubsets (length bs) $ s
 
 dSize s = length . allDeletions s
 
@@ -97,6 +132,18 @@ vtClass n k = filter ((k ==) . vtWeight) (allBitStrings n)
 vtClasses n = map (vtClass n) [0..n]
 
 vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + (max k (n - k)))) (allSubsets n k) 
+
+vtLevelClassSizes n k =   
+  let k' = max k (n-k) 
+  in fastHist . map (vtWeightM (1 + k')) $ allSubsets n k
+
+bigVTLevelClass n k = maximum . map snd $ vtLevelClassSizes n k
+
+bigVTLevelClasses n = map (bigVTLevelClass n) [0..n]
+
+
+
+
 
 genWeight ws max = (`mod` max) . sum . getSubset ws 
 

@@ -75,6 +75,8 @@ subsetDist n k
   
 allSubsets :: (Integral a) => a -> a -> [[Bool]]
 allSubsets n k
+  | k < 0     = []
+  | k > n     = []
   | n == 0    = [[]]
   | k == 0    = right
   | k == n    = left  
