@@ -3,7 +3,7 @@ module Main where
 import Graph
 import GraphDegree
 import GraphAlgorithms(maxCliques, maxIndepSets, greedyIndepSet)
-import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoIntEdges, vtZeroEdges, vtZeroLevelEdges)
+import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoIntEdges, vtZeroEdges, vtZeroLevelEdges, firstLevels, midLevels)
 import Util(argMaximumsSoFar)
 import System.Environment(getArgs)
 
@@ -22,11 +22,13 @@ gen 6 k n = map (levLevelTwoIntEdges k) [n]
 gen 7 _ n = map (adjListFull . vtZeroEdges) [2..n]
 gen 8 k n = map (adjListFull . levIntEdges k) [n]
 gen 9 _ n = map (adjListFull . vtZeroLevelEdges) [2..n]
+gen 10 k n = map (adjListFull . firstLevels k) [(k+2)..n]
+gen 11 _ n = map (adjListFull . midLevels) [n]
 gen _ _ _ = undefined
 
 
 test :: Int -> FullAdj Int -> IO () 
---test 0 = print . length . fromEdgeList
+test 0 = print . totalDegree
 test 1 = print . maxDegree
 test 2 = print . minDegree
 test 3 = print . degeneracy

@@ -43,3 +43,4 @@ argminDegree = mapFst showBits . minimumBy (compare `on` snd) . degrees
 
 maxDegree = maximum . map snd . degrees
 minDegree = minimum . map snd . degrees
+totalDegree = sum . map snd . degrees
