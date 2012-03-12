@@ -14,6 +14,7 @@ module SubsetSelection
        , unpartition
        , indicesToBitList
        , bitListToIndices
+       , allMultinomials
        ) where
 
 import Uniform
@@ -21,6 +22,7 @@ import Distribution
 import Data.List(partition, unfoldr)
 import Data.Ratio((%))
 import Control.Applicative((<$>))
+import Data.Foldable(foldrM)
 
 -- Compute binomial coefficients
 
@@ -112,8 +114,20 @@ partitionSubsets set =
     
 pairMap f (x, y) = (f x, f y)    
 
+unpartition :: [Bool] -> [a] -> [a] -> [a]
 unpartition []         _      _      = []
 unpartition (False:bs) xs     (y:ys) = y : unpartition bs xs ys
 unpartition (False:_ ) _      []     = []
 unpartition (True: bs) (x:xs) ys     = x : unpartition bs xs ys
 unpartition (True: _ ) []     _      = []
+
+allShuffles :: [a] -> [a] -> [[a]]
+allShuffles xs ys =
+  let lx = length xs
+      ly = length ys
+  in map (\z -> unpartition z xs ys) $ allSubsets (lx + ly) lx
+     
+allMultinomials :: [Int] -> [[Int]]
+allMultinomials = foldrM f [] . zip [0..]
+  where
+    f (a, k) = allShuffles (replicate k a)

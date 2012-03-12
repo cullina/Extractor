@@ -38,6 +38,8 @@ test 6 = print . maximum . map length . maxIndepSets . removeBackLinks
 test 7 = mapM_ print . argMaximumsSoFar length . maxIndepSets . removeBackLinks
 test 8 = print . length . fromFullAdj 
 test 9 = print . length . greedyIndepSet . removeBackLinks
+
+
 test _ = undefined
 
 
