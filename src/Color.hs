@@ -38,3 +38,10 @@ testEdge c (x,y) =
 testColoring :: Coloring -> EdgeList Int -> Bool
 testColoring c = all (testEdge (coloring c)) . fromEdgeList
 
+colorClasses :: Coloring -> [(Int, [Int])]
+colorClasses (Coloring n cMap) = 
+  let as = IM.assocs cMap
+      f k = (k, map fst $ filter ((==) k . snd) as)
+  in map f [0 .. n - 1]
+      
+

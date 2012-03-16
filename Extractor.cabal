@@ -44,10 +44,21 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 
-Executable clique
+Executable graph
   Main-is: Main.hs   
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
+
+Executable color
+  Main-is: ColorMain.hs   
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  hs-source-dirs:  src
+
+Executable exact
+  Main-is: ExactMain.hs   
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  hs-source-dirs:  src
+
 
 --Library
   -- Modules exported by the library.

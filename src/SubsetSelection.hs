@@ -79,13 +79,23 @@ allSubsets :: (Integral a) => a -> a -> [[Bool]]
 allSubsets n k
   | k < 0     = []
   | k > n     = []
-  | n == 0    = [[]]
-  | k == 0    = right
-  | k == n    = left  
-  | otherwise = left ++ right
-    where left  = (True :)  <$> allSubsets (n - 1) (k - 1)
-          right = (False :) <$> allSubsets (n - 1) k
-  
+  | otherwise = allShuffles (replicate (fromIntegral k) True) (replicate (fromIntegral (n - k)) False)
+          
+allShuffles :: [a] -> [a] -> [[a]]
+allShuffles xs [] = [xs]
+allShuffles [] ys = [ys]
+allShuffles (x:xs) (y:ys) =
+  ((x :) <$> allShuffles xs (y:ys)) ++ 
+  ((y :) <$> allShuffles (x:xs) ys)
+     
+allMultinomials :: [Int] -> [[Int]]
+allMultinomials ks = 
+  let f (a, k) = allShuffles (replicate k a)
+  in if all (0 <=) ks
+     then foldrM f [] $ zip [0..] ks
+     else []
+    
+
 
 allSubsets2 :: (Integral a) => a -> a -> [[Bool]]
 allSubsets2 n = support . subsetDist n
@@ -121,13 +131,3 @@ unpartition (False:_ ) _      []     = []
 unpartition (True: bs) (x:xs) ys     = x : unpartition bs xs ys
 unpartition (True: _ ) []     _      = []
 
-allShuffles :: [a] -> [a] -> [[a]]
-allShuffles xs ys =
-  let lx = length xs
-      ly = length ys
-  in map (\z -> unpartition z xs ys) $ allSubsets (lx + ly) lx
-     
-allMultinomials :: [Int] -> [[Int]]
-allMultinomials = foldrM f [] . zip [0..]
-  where
-    f (a, k) = allShuffles (replicate k a)

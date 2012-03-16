@@ -4,7 +4,7 @@ import Graph
 import LevOps
 import Bit(bitsToInt, allBitStrings)
 import SubsetSelection(allSubsets, subsetToInteger, choose)
-import Util(keepArg2, andTest)
+import Util(keepArg, keepArg2, andTest, mapFst, mapSnd)
 import ListSet(listSetFromList)
 import Data.List(sort)
 import Data.Set(fromList)
@@ -33,6 +33,9 @@ levLevelTwoEdges k = matrixSquare . adjListFull . levLevelEdges k
 levLevelTwoIntEdges k = arraySquare . adjArray . levLevelIntCEdges k
 
 basicCliques s n = map (allInsertions s) (allBitStrings (n - s))
+
+insertionStars s n = 
+  map (mapFst bitsToInt . mapSnd (map bitsToInt) . keepArg (allInsertions s)) $ allBitStrings (n - s)
 
 levelCliques :: Int -> Int -> [[[Bool]]]
 levelCliques k n = map allSingleOneInsertions  (allSubsets (n - 1) (k - 1)) ++ 

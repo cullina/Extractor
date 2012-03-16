@@ -2,7 +2,8 @@ module GraphAlgorithms where
 
 import Graph
 import Util(mapFst, mapSnd)
-import ListSet(contains)       
+import ListSet(contains, intersect)       
+import Data.Foldable(foldrM)
 
 removeNeighbors :: Ord a => [a] -> [(a,[a])] -> [(a,[a])]
 removeNeighbors [] es = es
@@ -76,6 +77,16 @@ allMaxIndepSets = f . fromFwdAdj
       in if null rest
          then is   
          else is ++ filter (not . contains (map fst kept)) (f g)
+
+allIndepSets :: Ord a => FwdAdj a -> [[a]]
+allIndepSets = foldrM f [] . fromFwdAdj
+  where
+    f :: Ord a => (a, [a]) -> [a] -> [[a]]
+    f (u, vs) is = 
+      if intersect vs is
+      then [is]
+      else [u:is, is]      
+      
 
 greedyIndepSet :: Ord a => FwdAdj a -> [a]
 greedyIndepSet = head . maxIndepSets

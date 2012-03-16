@@ -2,42 +2,48 @@ module Main where
 
 import Graph
 import GraphDegree
-import GraphAlgorithms(maxCliques, maxIndepSets, greedyIndepSet)
+import GraphAlgorithms(maxCliques, maxIndepSets, greedyIndepSet, allMaxIndepSets)
 import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoIntEdges, vtZeroEdges, vtZeroLevelEdges, firstLevels, midLevels)
+import QaryGraphs(qMiddleLevelIntEdges)
 import Util(argMaximumsSoFar)
 import System.Environment(getArgs)
 
-main = do
-  [m,g,k,n] <- fmap (map read) getArgs
-  mapM_ (test m) $ gen g k n
+main = getArgs >>= f
+
+f :: [String] -> IO()
+f [t,g,k,n] = mapM_ (test t) $ gen (read g) (read k) (read n)
+f _ = error "Need 4 args."
 
 gen :: Int -> Int -> Int -> [FullAdj Int]
-gen 0 k n = map (adjListFull . levIntEdges k) [1..n]
-gen 1 k n = map (adjListFull . levLevelIntEdges k) [k+1..n]
-gen 2 _ n = map (\x -> adjListFull $ levLevelIntEdges x (2*x)) [1..n]
-gen 3 _ n = map (\x -> adjListFull $ levLevelIntEdges x (3*x)) [1..n]
-gen 4 k n = map (levLevelTwoIntEdges k) [k+1..n]
-gen 5 _ n = map (\x -> levLevelTwoIntEdges x (2*x)) [2..n]
-gen 6 k n = map (levLevelTwoIntEdges k) [n]
-gen 7 _ n = map (adjListFull . vtZeroEdges) [2..n]
-gen 8 k n = map (adjListFull . levIntEdges k) [n]
+gen 0 s n = map (adjListFull . levIntEdges s) [1..n]
+gen 1 k n = map (adjListFull . levIntEdges k) [n]
+gen 2 k n = map (adjListFull . levLevelIntEdges k) [k+1..n]
+gen 3 _ n = map (\x -> adjListFull $ levLevelIntEdges x (2*x)) [1..n]
+gen 4 _ n = map (\x -> adjListFull $ levLevelIntEdges x (3*x)) [1..n]
+gen 5 k n = map (levLevelTwoIntEdges k) [k+1..n]
+gen 6 _ n = map (\x -> levLevelTwoIntEdges x (2*x)) [2..n]
+gen 7 k n = map (levLevelTwoIntEdges k) [n]
+gen 8 _ n = map (adjListFull . vtZeroEdges) [2..n]
 gen 9 _ n = map (adjListFull . vtZeroLevelEdges) [2..n]
 gen 10 k n = map (adjListFull . firstLevels k) [(k+2)..n]
 gen 11 _ n = map (adjListFull . midLevels) [n]
+gen 12 q k = map adjListFull $ [qMiddleLevelIntEdges q k]
 gen _ _ _ = undefined
 
 
-test :: Int -> FullAdj Int -> IO () 
-test 0 = print . totalDegree
-test 1 = print . maxDegree
-test 2 = print . minDegree
-test 3 = print . degeneracy
-test 4 = print . maximum . map length . maxCliques . removeBackLinks
-test 5 = mapM_ print . argMaximumsSoFar length . maxCliques . removeBackLinks
-test 6 = print . maximum . map length . maxIndepSets . removeBackLinks
-test 7 = mapM_ print . argMaximumsSoFar length . maxIndepSets . removeBackLinks
-test 8 = print . length . fromFullAdj 
-test 9 = print . length . greedyIndepSet . removeBackLinks
+test :: String -> FullAdj Int -> IO () 
+test "totalDegree" = print . totalDegree
+test "maxDegree"   = print . maxDegree
+test "minDegree"   = print . minDegree
+test "degeneracy"  = print . degeneracy
+test "cliques"     = print . maximum . map length . maxCliques . removeBackLinks
+test "cliques2"    = mapM_ print . argMaximumsSoFar length . maxCliques . removeBackLinks
+test "indep"       = print . maximum . map length . maxIndepSets . removeBackLinks
+test "allIndep"    = print . maximum . map length . allMaxIndepSets . removeBackLinks
+test "indep2"      = mapM_ print . argMaximumsSoFar length . maxIndepSets . removeBackLinks
+test "allIndep2"      = mapM_ print . argMaximumsSoFar length . allMaxIndepSets . removeBackLinks
+test "vertices"    = print . length . fromFullAdj 
+test "indepGreedy" = print . length . greedyIndepSet . removeBackLinks
 
 
 test _ = undefined
