@@ -13,9 +13,8 @@ module Bit
      incrementFixedWidthInt,
      pruneZeroes,
      allBitStrings,
-     showBool,
      showBits,
-     showBits2
+     showTrues
     )
 where
 
@@ -24,7 +23,15 @@ import Data.List(foldl')
 
 --Utility
 
-showBool b = if b then 'X' else '_'
+showBits :: [Bool] -> String
+showBits = map f
+  where f True  = '1'
+        f False = '0'
+        
+showTrues :: [Bool] -> String
+showTrues = map f
+  where f True  = 'X' 
+        f False = '_'
 
 -- most significant bits first
 
@@ -97,12 +104,3 @@ allBits = [False, True]
 allBitStrings :: (Integral a) => a -> [[Bool]]
 allBitStrings n = sequence $ replicate (fromIntegral n) allBits
 
-showBits :: [Bool] -> String
-showBits = map f
-  where f True  = '1'
-        f False = '0'
-        
-showBits2 :: [Bool] -> String
-showBits2 = map f
-  where f True  = 'X'
-        f False = '_'
