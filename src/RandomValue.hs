@@ -64,7 +64,7 @@ untilSuccess :: RValue a (Maybe b) -> RValue a b
 
 untilSuccess f = maybe (untilSuccess f) Done =<< f 
 
-
+useFixedNumber :: Int -> RValue a [a]
 useFixedNumber n = replicateM n $ arr id
 
 pP = mapM (const (arr id))
