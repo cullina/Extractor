@@ -43,9 +43,22 @@ fmapD :: (Functor f) => f (a -> b) -> a -> f b
 fmapD r x = fmap ($ x) r 
 
 arr :: (a -> b) -> RValue a b 
+arr f = 
+  NotDone $ \x -> 
+  Done (f x)
 
-arr f = NotDone $ \a -> Done (f a)
+arr2 :: (a -> a -> b) -> RValue a b
+arr2 f = 
+  NotDone $ \x -> 
+  NotDone $ \y -> 
+  Done (f x y)
 
+arr3 :: (a -> a -> a -> b) -> RValue a b
+arr3 f = 
+  NotDone $ \x -> 
+  NotDone $ \y -> 
+  NotDone $ \z -> 
+  Done (f x y z)
 
 untilSuccess :: RValue a (Maybe b) -> RValue a b
 
@@ -56,10 +69,15 @@ useFixedNumber n = replicateM n $ arr id
 
 pP = mapM (const (arr id))
 
-
+fromList :: RValue a b -> [a] -> (b, [a])
 fromList (Done x)    as     = (x, as)
 fromList (NotDone f) (a:as) = fromList (f a) as
 fromList (NotDone _) []     = error "Reached end of list."
+
+safeFromList :: RValue a b -> [a] -> Maybe (b, [a])
+safeFromList (Done x)    as     = Just (x, as)
+safeFromList (NotDone f) (a:as) = safeFromList (f a) as
+safeFromList (NotDone _) []     = Nothing
 
 attachCounter = aC 0
     where aC counter (Done x)    = Done (x, counter)
