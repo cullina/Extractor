@@ -5,7 +5,7 @@ import Falling
 import SubsetSelection
 import Util(mapPair)
 import Data.Function(on)
-import Data.List(sortBy, partition)
+import Data.List(sort, sortBy, partition)
 
 slowPerm []     = []
 slowPerm (u:us) = u : map (bumpUp u) (slowPerm us)
@@ -60,6 +60,12 @@ permToFn (_:ns) m = permToFn ns (m-1)
 
 permute :: (Integral a) => [a] -> [b] -> [b]
 permute p = map snd . sortBy (compare `on` fst) . zip p
+
+inverse :: (Integral a) => [a] -> [a]
+inverse p = permute p [0..]
+
+compose :: (Integral a) => [a] -> [a] -> [a]
+compose p q = permute (inverse p) q
 
 allPermutations :: Int -> [[Int]]
 allPermutations n = map perm $ allFallings n n
