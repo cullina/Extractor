@@ -3,6 +3,10 @@ module QTree where
 import Bit(showBits)
 import LevOps(vtSum)
 import Permutation(allPermutations)
+import Data.Foldable(foldrM)
+import Control.Monad((<=<), join)
+import Data.Maybe(fromJust)
+import Util(mapFst)
 
 data BTree a = BE 
              | BT a (BTree a) (BTree a)
@@ -12,23 +16,48 @@ data TTree a = TE
              | TT a (TTree a) (TTree a) (TTree a)
              deriving Show
 
-data QTree q a =  QT a (q -> Maybe (QTree q a))
+data QTree q a = QE 
+               | QT a (q -> QTree q a)
+
+data GeneralTree a = GenE
+                   | GenT a [GeneralTree a]
+                   deriving Show
 
 instance Functor BTree where
-  fmap _ BE = BE
+  fmap _ BE         = BE
   fmap f (BT x l r) = BT (f x) (fmap f l) (fmap f r)
 
 instance Functor TTree where
-  fmap _ TE = TE
+  fmap _ TE           = TE
   fmap f (TT x l m r) = TT (f x) (fmap f l) (fmap f m) (fmap f r)
 
 instance Functor (QTree q) where
-  fmap f (QT x cs) = QT (f x) (fmap (fmap (fmap f)) cs)
+  fmap _ QE        = QE
+  fmap f (QT x cs) = QT (f x) (fmap f . cs)
 
---data LQTree q = LQT (q -> Either (QTree q) Int)
+instance Functor GeneralTree where
+  fmap f GenE        = GenE
+  fmap f (GenT x cs) = GenT (f x) (map (fmap f) cs)
 
-data GeneralTree = GenT [Maybe GeneralTree] deriving Show
 
+data LCode a = Open a
+             | Close
+               
+instance Show a => Show (LCode a) where
+  show Close = "X"
+  show (Open x) = show x
+
+bitCoerce :: [a] -> (a,a)
+bitCoerce [x,y] = (x,y)
+bitCoerce _     = error "List is not length 2."
+
+tritCoerce :: [a] -> (a,a,a)
+tritCoerce [x,y,z] = (x,y,z)
+tritCoerce _       = error "List is not length 3."
+
+bitLookup :: (a,a) -> Bool -> a
+bitLookup (x,_) True  = x
+bitLookup (_,x) False = x
 
 tritLookup :: (a,a,a) -> Ordering -> a
 tritLookup (_,_,x) LT = x
@@ -42,60 +71,54 @@ showTrits = map f
     f EQ = '1'
     f GT = '2'
 
-bitLookup :: (a,a) -> Bool -> a
-bitLookup (x,_) True  = x
-bitLookup (_,x) False = x
+
+qTreeToGeneral :: [q] -> QTree q a -> GeneralTree a
+qTreeToGeneral _  QE        = GenE
+qTreeToGeneral qs (QT x cs) = GenT x $ map (qTreeToGeneral qs . cs) qs
+
+genTreeToQ :: GeneralTree a -> QTree Int a
+genTreeToQ GenE        = QE
+genTreeToQ (GenT x ts) = QT x (\q -> (map genTreeToQ ts) !! q)
 
 
-qTreeToGeneral :: [q] -> QTree q a -> GeneralTree
-qTreeToGeneral qs (QT _ cs) = GenT $ map (fmap (qTreeToGeneral qs) . cs) qs
-
-
-
-qString :: Eq q => [q] -> QTree q a -> [q]
-qString qs = f Nothing
+qString :: Eq q => [q] -> QTree q a -> Maybe [q]
+qString qs QE = Nothing
+qString qs (QT _ cs) = Just $ f Nothing cs
   where
-    f x (QT _ cs) = concatMap (g x cs) qs
+    f x cs   = concatMap (g x cs) qs
     g x cs q = case (fmap (q ==) x, cs q) of
-      (Just True,  Nothing) -> [q]
-      (Just True,  Just t)  -> [q] ++ reverse (f Nothing t) ++ [q]
-      (_,          Nothing) -> []
-      (_,          Just t)  -> reverse (f (Just q) t)
+      (Just True,  QE)      -> [q]
+      (Just True,  QT _ cs) -> [q] ++ reverse (f Nothing cs) ++ [q]
+      (_,          QE)      -> []
+      (_,          QT _ cs) -> reverse (f (Just q) cs)
         
 
-qString2 :: Eq q => [q] -> QTree q a -> [q]
-qString2 qs = f False Nothing
+qString2 :: Eq q => [q] -> QTree q a -> Maybe [q]
+qString2 qs QE        = Nothing
+qString2 qs (QT _ cs) = Just $ f False Nothing cs
   where
-    sq = reverse qs
-    f d x (QT _ cs) = concatMap (g d x cs) (if d then sq else qs)
+    sq         = reverse qs
+    f d x cs   = concatMap (g d x cs) (if d then sq else qs)
     g d x cs q = case (fmap (q ==) x, cs q) of
-      (Just True,  Nothing) -> [q]
-      (Just True,  Just t)  -> [q] ++ f (not d) Nothing t ++ [q]
-      (_,          Nothing) -> []
-      (_,          Just t)  -> f (not d) (Just q) t
+      (Just True,  QE)      -> [q]
+      (Just True,  QT _ cs) -> [q] ++ f (not d) Nothing cs ++ [q]
+      (_,          QE)      -> []
+      (_,          QT _ cs) -> f (not d) (Just q) cs
         
 
-{-
-qNumbering :: Eq q => [q] -> QTree q -> LQTree q
-qNumbering qs = f 0 Nothing
-  where
-    f n 
--}
+bTreeToQTree :: BTree a -> QTree Bool a
+bTreeToQTree BE         = QE
+bTreeToQTree (BT x l r) = QT x $ bitLookup (bTreeToQTree l, bTreeToQTree r)
 
-
-bTreeToQTree :: BTree a -> Maybe (QTree Bool a)
-bTreeToQTree BE         = Nothing
-bTreeToQTree (BT x l r) = Just . QT x $ bitLookup (bTreeToQTree l, bTreeToQTree r)
-
-tTreeToQTree :: TTree a -> Maybe (QTree Ordering a)
-tTreeToQTree TE           = Nothing
-tTreeToQTree (TT x l m r) = Just . QT x $ tritLookup (tTreeToQTree l, tTreeToQTree m, tTreeToQTree r)
+tTreeToQTree :: TTree a -> QTree Ordering a
+tTreeToQTree TE           = QE
+tTreeToQTree (TT x l m r) = QT x $ tritLookup (tTreeToQTree l, tTreeToQTree m, tTreeToQTree r)
 
 bString :: BTree a -> Maybe [Bool]
-bString = fmap (qString [True, False]) . bTreeToQTree
+bString = qString [True, False] . bTreeToQTree
 
 tString :: TTree a -> Maybe String
-tString = fmap (showTrits . qString [GT, EQ, LT]) . tTreeToQTree
+tString = fmap showTrits . qString [GT, EQ, LT] . tTreeToQTree
 
 
 bString2 :: BTree a -> Maybe [Bool]
@@ -123,3 +146,46 @@ increasingBTree xs = f (BE, xs)
     g left m (t, x:xs) = if x < m     
                          then (BT m left t, x:xs)
                          else g left m (g t x (BE, xs))
+
+
+
+toLCode :: (Ord q) => [q] -> QTree q a -> [LCode a]
+toLCode _   QE       = [Close]
+toLCode qs (QT x cs) = concatMap (toLCode qs . cs) qs ++ [Open x]
+
+
+fromLCode :: Eq q => [q] -> [LCode a] -> Maybe (QTree q a)
+fromLCode qs = exactlyOne <=< foldrM f []
+  where
+    exactlyOne :: [b] -> Maybe b
+    exactlyOne [t] = Just t
+    exactlyOne _   = Nothing
+
+    f Close    stack = Just (QE : stack)
+    f (Open x) stack = fmap (push x) (collectChildren qs stack)
+
+    push :: Eq q => a -> ([(q, QTree q a)], [QTree q a]) -> [QTree q a]
+    push x (top, rest) = QT x (fromJust . flip lookup top) : rest
+
+fromLCode2 :: Int -> [LCode a] -> Maybe (GeneralTree a)
+fromLCode2 q = exactlyOne <=< foldrM f []
+  where
+    exactlyOne :: [b] -> Maybe b
+    exactlyOne [t] = Just t
+    exactlyOne _   = Nothing
+
+    f Close    stack = Just (GenE : stack)
+    f (Open x) stack = fmap (push x) (safeSplit q stack)
+
+    push x (top, rest) = GenT x top : rest
+
+    
+safeSplit :: Int -> [t] -> Maybe ([t],[t])
+safeSplit 0 ts     = Just ([], ts)
+safeSplit n []     = Nothing
+safeSplit n (t:ts) = fmap (mapFst (t :)) (safeSplit (n - 1) ts)
+    
+collectChildren :: [q] -> [t] -> Maybe ([(q,t)],[t])
+collectChildren []     ts     = Just ([], ts)
+collectChildren (q:qs) []     = Nothing
+collectChildren (q:qs) (t:ts) = fmap (mapFst ((q,t) :)) (collectChildren qs ts)
