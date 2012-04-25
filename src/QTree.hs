@@ -151,7 +151,7 @@ increasingBTree xs = f (BE, xs)
 
 toLCode :: (Ord q) => [q] -> QTree q a -> [LCode a]
 toLCode _   QE       = [Close]
-toLCode qs (QT x cs) = concatMap (toLCode qs . cs) qs ++ [Open x]
+toLCode qs (QT x cs) = Open x : concatMap (toLCode qs . cs) qs
 
 
 fromLCode :: Eq q => [q] -> [LCode a] -> Maybe (QTree q a)
