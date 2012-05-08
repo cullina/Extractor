@@ -35,6 +35,7 @@ incNode (Just n) = Just (n+1)
 
 treeHistogramUpdate tree = modifyNode incNode tree . natToBits . (+) 1 
 
+treeHistogram :: (Integral a) => [a] -> [a]
 treeHistogram = map (fromMaybe 0) . flatten . foldl' treeHistogramUpdate Leaf
 
 ----------------
