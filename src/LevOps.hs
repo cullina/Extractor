@@ -4,6 +4,7 @@ import Bit(bitsToInt, allBitStrings, xor)
 import SubsetSelection(allSubsets, getSubset)
 import Util(church)
 import ListSet(listSetFromList, fastHist)
+import SubstringCounting
 import Data.List(mapAccumL)
 import Data.Maybe(catMaybes)
 import Control.Monad((<=<))
@@ -142,3 +143,9 @@ hn :: Int -> [Bool] -> Int
 hn n = hWeight . church n derivative
 
 -----------
+
+inversionStats :: Int -> [Bool] -> [(InvStats, Int)]
+inversionStats s = fastHist . map bsInvStats . allInsertions s
+
+allEqual [] = True
+allEqual (x:xs) = all (x ==) xs

@@ -7,13 +7,20 @@ import Data.Tuple(swap)
 data SubStats = SS ((Bool,Bool) -> [Int])
 
 instance Show SubStats where
-  show (SS x) = show (expandBB (take 4 . x))
+  show = show . smallStats 4
 
 instance Monoid SubStats where
   mempty = SS $ lookupBB (seriesOne, seriesZero, seriesZero, seriesOne)
   mappend (SS x) (SS y) = SS $ evenOddMult x y
 
+data InvStats = IS Int Int Int
+                deriving (Show, Eq, Ord)
 
+instance Monoid InvStats where
+  mempty = IS 0 0 0
+  mappend (IS a b c) (IS d e f) = IS (a + d) (b + e) (c + f + (b * d))
+  
+  
 bStats :: Bool -> SubStats
 bStats False = SS $ lookupBB (seriesOne, seriesOne, seriesZero, seriesOne)
 bStats True  = SS $ lookupBB (seriesOne, seriesZero, seriesOne, seriesOne)
@@ -21,9 +28,18 @@ bStats True  = SS $ lookupBB (seriesOne, seriesZero, seriesOne, seriesOne)
 bsStats :: [Bool] -> SubStats
 bsStats = mconcat . map bStats
 
-smallStats :: Int -> SubStats -> SubStats
-smallStats n (SS xs) = SS $ take n . xs
+smallStats :: Int -> SubStats -> ([Int],[Int],[Int],[Int])
+smallStats n (SS x) = expandBB $ take n . x
 
+bInvStats :: Bool -> InvStats
+bInvStats False = IS 1 0 0
+bInvStats True  = IS 0 1 0
+
+bsInvStats :: [Bool] -> InvStats 
+bsInvStats = mconcat . map bInvStats
+
+inversions :: InvStats -> Int
+inversions (IS _ _ n) = n
 
 lookupBB :: (a, a, a, a) -> (Bool,Bool) -> a
 lookupBB (a,_,_,_) (False, False) = a
