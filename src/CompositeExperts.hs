@@ -9,16 +9,22 @@ instance Show (ExpWExpert a) where
 
 instance (Expert a) => Expert (ExpWExpert a) where
   predict (EWE _ _ p _)    = p
-  update  (EWE beta l _ es) b = EWE beta l (weightedPred newEs) newEs
+  
+  updateState b (EWE beta l _ es) = EWE beta l (weightedPred newEs) newEs
     where
-      newEs  = map (nextPrediction b . rescaleWeight totalWeight) tempEs
-      totalWeight = recip . sum . map weight $ tempEs
-      tempEs = map (updateWeight (l b)) es
-      updateWeight lossFn (ex, p, w) = (ex, p, w * exp (beta * lossFn p)) 
-      rescaleWeight factor (ex, p, w) = (ex, p, w * factor)
+      newEs  = map (nextPrediction b) es
       nextPrediction b (ex, _, w) = 
-        let newEx = update ex b
+        let newEx = updateState b ex
         in (newEx, predict newEx, w)
+      
+      
+  updateModel b (EWE beta l p es) = EWE beta l p newEs
+    where
+      newEs  = map (rescaleWeight totalWeight) tempEs
+      totalWeight = recip . sum . map weight $ tempEs
+      tempEs = map (updateWeight l b) es
+      updateWeight lossFn b (ex, p, w) = (updateModel b ex, p, w * exp (beta * lossFn b p)) 
+      rescaleWeight factor (ex, p, w) = (ex, p, w * factor)
 
 weightedPred :: [(a, Double, Double)] -> Double
 weightedPred = sum . map contribution

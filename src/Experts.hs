@@ -25,6 +25,13 @@ simExpert expert = mapAccumL f expert
     f :: (Expert a) => a -> Bool -> (a, (Bool, Double))
     f expert b = (update b expert, (b, predict expert))
     
+simTwoExpert :: (Expert a) => (a,a) -> [Bool] -> ((a,a),[(Bool, Double)])
+simTwoExpert expert = mapAccumL f expert 
+  where 
+    f :: (Expert a) => (a,a) -> Bool -> ((a,a), (Bool, Double))
+    f (e1, e2) b = ((update b e1, update b e2), (b, (predict e1 + predict e2) / 2))
+
+
 
 getLoss :: Expert a => (Bool -> Double -> Double) -> a -> [Bool] -> Double
 getLoss l e = computeLoss l . snd . simExpert e

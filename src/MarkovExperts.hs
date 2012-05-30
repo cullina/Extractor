@@ -1,31 +1,44 @@
 module MarkovExperts where
 
 import Util(mapPair)
+import SubsetSelection(getSubset)
 import Experts
+import Bit(bitsToInt)
 
 data WUTree = Leaf Int
             | Branch Int WUTree WUTree
 
 instance Show WUTree where
   show (Leaf n) = show n
+  show (Branch n (Leaf l) (Leaf r)) = show (toProb (l,r), l+r)
   show (Branch n l r) = show (l,r)
 
-newTree = Branch 2 (Leaf 1) (Leaf 1)
+newTree :: Int -> WUTree
+newTree 0 = Leaf 1
+newTree n = 
+  let t = newTree (n-1) 
+  in Branch (2 * sizeOf t) t t
 
 sizeOf :: WUTree -> Int
 sizeOf (Leaf n)       = n
 sizeOf (Branch n _ _) = n
 
 incTree :: WUTree -> [Bool] -> WUTree
-incTree (Leaf n)       _            = Leaf (n + 1)
-incTree (Branch n l r) []           = Branch (n + 1) l r
-incTree (Branch n l r) (True : bs)  = Branch (n + 1) l (incTree r bs)
-incTree (Branch n l r) (False : bs) = Branch (n + 1) (incTree l bs) r
+incTree t = f t . reverse
+  where 
+    f (Leaf n)       _            = Leaf (n + 1)
+    f (Branch n l r) []           = Branch (n + 1) l r
+    f (Branch n l r) (True : bs)  = Branch (n + 1) l (f r bs)
+    f (Branch n l r) (False : bs) = Branch (n + 1) (f l bs) r
 
 getLocation :: WUTree -> [Bool] -> WUTree
-getLocation t              []     = t
-getLocation (Leaf n)       (_:_)  = error "Location not found."
-getLocation (Branch _ l r) (b:bs) = getLocation (if b then r else l) bs
+--getLocation t              []     = t
+--getLocation (Leaf n)       (_:_)  = error "Location not found."
+--getLocation (Branch _ l r) (b:bs) = getLocation (if b then r else l) bs
+getLocation = foldr f 
+  where
+    f b (Branch _ l r) = if b then r else l
+    f _ (Leaf _)       = error "Location not found."
 
 lookupOdds :: WUTree -> [Bool] -> (Int, Int)
 lookupOdds t bs = case getLocation t bs of 
@@ -43,14 +56,33 @@ instance Expert MarkovExpert where
   
   updateState newB (ME 0 tree [])     = ME 0 tree []
   updateState newB (ME 0 tree (b:bs)) = ME 0 tree (bs ++ [newB])
-  updateState newB (ME n tree bs) = ME (n - 1) (Branch (2 * sizeOf tree) tree tree) (bs ++ [newB])
+  updateState newB (ME n tree bs)     = ME (n - 1) (Branch (2 * sizeOf tree) tree tree) (bs ++ [newB])
   
-  updateModel newB (ME 0 tree bs)     = ME 0 (incTree tree (bs ++ [newB])) bs
+  updateModel newB (ME 0 tree bs)     = ME 0 (incTree tree (newB : bs)) bs
   updateModel newB (ME n tree bs)     = ME n tree bs
 
 
 newMarkovExpert :: Int -> MarkovExpert
-newMarkovExpert n = ME n newTree []
+newMarkovExpert n = ME n (newTree 1) []
+
+--------------------------------
+
+data RestrictedMarkovExpert = RME Int [Bool] WUTree [Bool]
+                              deriving Show
+
+instance Expert RestrictedMarkovExpert where
+  predict (RME n mask tree state) = toProb . lookupOdds tree $ getSubset state mask
+  
+  updateState newB (RME n mask tree bs) = RME n mask tree (take n (newB : bs))
+  
+  updateModel newB (RME n mask tree bs) = RME n mask (incTree tree (newB : getSubset bs mask)) bs
+  
+newRestrictedMarkovExpert :: [Bool] -> RestrictedMarkovExpert
+newRestrictedMarkovExpert mask = 
+  let n = length mask
+      m = 1 + length ((filter id) mask)
+  in RME n mask (newTree m) []
+                              
 
 --------------------------------
 
@@ -70,9 +102,9 @@ instance Expert UniversalExpert where
 
 
 incLocation :: WUTree -> [Bool] -> Maybe WUTree
-incLocation (Leaf _) []             = Just newTree
-incLocation (Leaf _) (_:_)          = error "Location not found"
-incLocation (Branch _ _ _) []     = Nothing
+incLocation (Leaf _) []       = Just (newTree 1)
+incLocation (Leaf _) (_:_)    = error "Location not found"
+incLocation (Branch _ _ _) [] = Nothing
 
 {-incLocation (Branch n l r) (b:bs) = 
   case (incLocation (if b then r else l) bs, b) of
@@ -86,7 +118,7 @@ incLocation (Branch n l r) (False:bs) =
   fmap (\t -> Branch (n+1) t r) (incLocation l bs)
 
 newUniversalExpert :: UniversalExpert
-newUniversalExpert = UE newTree []
+newUniversalExpert = UE (newTree 1) []
 
 ---------------------------------------
 
@@ -179,3 +211,25 @@ newRunsExpert = RE (repeat (1,1), repeat (1,1)) Nothing
 
 -------------------------------------------------
 
+
+data FixedMarkovExpert = FME Int [Bool] [Double] [Bool] 
+                       deriving Show
+
+instance Expert FixedMarkovExpert where
+  predict (FME n mask vector state) = vector !! bitsToInt (getSubset state mask)
+  
+  updateState newB (FME n mask vector bs) = FME n mask vector (take n (newB : bs))
+  
+  updateModel newB  = id
+
+
+newFixedMarkovExpert :: Int -> FixedMarkovExpert
+newFixedMarkovExpert 0 = FME 3 [True, True, True] [0.9, 0.633, 0.633, 0.367, 0.633, 0.367, 0.367, 0.1] []
+newFixedMarkovExpert 1 = FME 5 [True, False, True, False, True] [0.4, 0.3, 0.2, 0.4, 0.7, 0.2, 0.5, 0.3] []
+newFixedMarkovExpert 2 = FME 4 [False, True, True, True] [0.65, 0.45, 0.45, 0.25, 0.45, 0.25, 0.25, 0.05] []
+newFixedMarkovExpert 3 = FME 3 [True, True, True]        [0.75, 0.55, 0.3, 0.1, 0.9, 0.5, 0.3, 0.6] []
+newFixedMarkovExpert 4 = FME 4 [False, True, True, True] [0.4, 0.6, 0.8, 0.2, 0.6, 0.8, 0.4, 0.2] []
+newFixedMarkovExpert 5 = FME 3 [True, True, True]        [0.2, 0.4, 0.3, 0.5, 0.2, 0.2, 0.7, 0.7] []
+newFixedMarkovExpert 6 = FME 3 [True, True, True]        (replicate 8 0.2) []
+newFixedMarkovExpert 7 = FME 3 [True, True, True]        (replicate 8 0.5) []
+newFixedMarkovExpert 8 = FME 3 [True, True, True]        (replicate 8 0.9) []
