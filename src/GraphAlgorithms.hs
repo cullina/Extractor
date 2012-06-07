@@ -83,7 +83,7 @@ allIndepSets = foldrM f [] . fromFwdAdj
   where
     f :: Ord a => (a, [a]) -> [a] -> [[a]]
     f (u, vs) is = 
-      if intersect vs is
+      if vs `intersect` is
       then [is]
       else [u:is, is]      
       

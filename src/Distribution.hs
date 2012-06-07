@@ -30,7 +30,7 @@ support (Bernoulli _ l r) = support l ++ support r
 
 newWeighted :: (Integral i) => [(a, i)] -> Maybe (Distribution i a)
 
-newWeighted = fmap fst . foldr (maybeMappend mergeWeighted) Nothing . map (Just . mapFst Constant)
+newWeighted = fmap fst . foldr (maybeMappend mergeWeighted . Just . mapFst Constant) Nothing
 
 maybeMappend f (Just x) (Just y) = Just (f x y)
 maybeMappend _ Nothing x = x

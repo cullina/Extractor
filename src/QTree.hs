@@ -78,7 +78,7 @@ qTreeToGeneral qs (QT x cs) = GenT x $ map (qTreeToGeneral qs . cs) qs
 
 genTreeToQ :: GeneralTree a -> QTree Int a
 genTreeToQ GenE        = QE
-genTreeToQ (GenT x ts) = QT x (\q -> (map genTreeToQ ts) !! q)
+genTreeToQ (GenT x ts) = QT x (\q -> map genTreeToQ ts !! q)
 
 
 qString :: Eq q => [q] -> QTree q a -> Maybe [q]

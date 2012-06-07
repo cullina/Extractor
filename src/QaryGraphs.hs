@@ -3,6 +3,7 @@ module QaryGraphs where
 import Graph
 import Data.List(foldl', unfoldr)
 import Data.Tuple(swap)
+import Control.Monad(replicateM)
 import LevGraphs(mergeCliques)
 import SubsetSelection(allMultinomials)
 import Util(keepArg, mapFst, mapSnd)
@@ -16,7 +17,7 @@ allQ :: Int -> [Qary]
 allQ q = map Qary [0 .. q - 1]
 
 allQStrings :: Int -> Int -> [[Qary]]
-allQStrings q n = sequence . replicate n $ allQ q
+allQStrings q n = replicateM n $ allQ q
 
 qInsertions :: Qary -> [Qary] -> [[Qary]]
 qInsertions x []     = [[x]]
@@ -25,7 +26,7 @@ qInsertions x (y:ys)
   | otherwise = (x:y:ys) : map (y :) (qInsertions x ys)
                 
 singleQInsertions :: Int -> [Qary] -> [[Qary]]
-singleQInsertions q xs = (flip qInsertions xs) =<< allQ q
+singleQInsertions q xs = (`qInsertions` xs) =<< allQ q
                 
 qIns (x:xs) = qInsertions x xs
 qIns [] = undefined

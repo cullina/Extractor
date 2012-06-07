@@ -48,7 +48,7 @@ testNetwork net n bs = filter (not . snd . snd) . map (mapSnd (f increasing) . f
 fullTest net n = testNetwork net n $ allBitStrings n
 
 display :: (Show a) => [a] -> IO ()
-display = sequence_ . map print
+display = mapM_ print
 
 display2 :: (Show a) => [a] -> IO ()
 display2 = putStrLn . intercalate "\n" . map show
@@ -70,7 +70,7 @@ newNet = [(0,1),(2,4),(3,5),(6,7),(0,2),(1,4),(3,6),(5,7),(0,3),(1,5),(2,6),(4,7
 fixPair (a,b) = if a > b then (b,a) else (a,b)
 
 applyOrdering :: (Eq a) => [a] -> [(a,a)] -> [(Int, Int)]
-applyOrdering list net = map (fixPair . mapPair (fromJust . (flip elemIndex) list)) net
+applyOrdering list = map (fixPair . mapPair (fromJust . flip elemIndex list))
 
 
 

@@ -27,7 +27,7 @@ gen 8 _ n = map (adjListFull . vtZeroEdges) [2..n]
 gen 9 _ n = map (adjListFull . vtZeroLevelEdges) [2..n]
 gen 10 k n = map (adjListFull . firstLevels k) [(k+2)..n]
 gen 11 _ n = map (adjListFull . midLevels) [n]
-gen 12 q k = map adjListFull $ [qMiddleLevelIntEdges q k]
+gen 12 q k = map adjListFull [qMiddleLevelIntEdges q k]
 gen _ _ _ = undefined
 
 

@@ -21,11 +21,11 @@ addToCover :: ECProblem -> Int -> ECProblem
 addToCover (ECProblem top bottom) n =
   let covered     = top IM.! n
       coveredList = IS.elems covered
-      unusable    = IS.unions . catMaybes $ map (flip IM.lookup bottom) coveredList
+      unusable    = IS.unions . catMaybes $ map (`IM.lookup` bottom) coveredList
       interTop    = foldr IM.delete top $ IS.elems unusable
-      interBottom = foldr IM.delete bottom $ coveredList
-      newTop      = IM.map (flip IS.difference covered) interTop
-      newBottom   = IM.map (flip IS.difference unusable) interBottom
+      interBottom = foldr IM.delete bottom coveredList
+      newTop      = IM.map (`IS.difference` covered) interTop
+      newBottom   = IM.map (`IS.difference` unusable) interBottom
   in ECProblem newTop newBottom
      
 transpose :: (Ord a, Ord b, Eq b) => [(a, [b])] -> [(b, [a])] 
@@ -39,7 +39,7 @@ transpose = collect . sort . concatMap expand
         c x ((y,z):ys) = 
           if x == y
           then mapFst (z :) (c x ys)
-          else ([],((y,z):ys))
+          else ([], (y,z):ys)
         
 fromBottom :: [(Int, [Int])] -> ECProblem
 fromBottom bs = ECProblem t b

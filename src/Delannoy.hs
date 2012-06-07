@@ -40,11 +40,11 @@ pathToPoint = radius . foldr pTP (0, [])
         radius (slack, xs)         = (xs, slack + sum (map abs xs))  
         
 pointToPath = unfoldr pTP . unradius
-  where pTP (0, [])     = Nothing
-        pTP (0, (x:xs)) = if x >= 0
-                          then Just (Vertical, (x, xs))
-                          else Just (Diagonal, (-x - 1, xs))
-        pTP (x, xs)     = Just (Horizontal, (x - 1, xs))
+  where pTP (0, [])   = Nothing
+        pTP (0, x:xs) = if x >= 0
+                        then Just (Vertical, (x, xs))
+                        else Just (Diagonal, (-x - 1, xs))
+        pTP (x, xs)   = Just (Horizontal, (x - 1, xs))
         unradius (xs, bound) = (bound - sum (map abs xs), xs)
 
 

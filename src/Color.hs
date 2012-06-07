@@ -21,7 +21,7 @@ colorVertex (Coloring used cMap) v c =
 
 extendColoring :: Int -> (Int, [Int]) -> Coloring -> [Coloring]
 extendColoring maxColor (u, vs) c@(Coloring used cMap) = 
-  let adjacentColors = listSetFromList . catMaybes $ map (flip IM.lookup cMap) vs
+  let adjacentColors = listSetFromList . catMaybes $ map (`IM.lookup` cMap) vs
   in map (colorVertex c u) $ asymDiff [0 .. (min used maxColor)] adjacentColors
 
      
@@ -31,7 +31,7 @@ color n = foldrM (extendColoring (n-1)) emptyColoring . fromFwdAdj
 
 testEdge :: IM.IntMap Int -> (Int, Int) -> Bool
 testEdge c (x,y) = 
-  case ((IM.lookup x c), (IM.lookup y c)) of
+  case (IM.lookup x c, IM.lookup y c) of
     (Just xx, Just yy) -> xx /= yy
     (_, _)             -> False
 
@@ -44,4 +44,3 @@ colorClasses (Coloring n cMap) =
       f k = (k, map fst $ filter ((==) k . snd) as)
   in map f [0 .. n - 1]
       
-

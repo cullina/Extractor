@@ -35,7 +35,7 @@ extractor goodBits bits =
         (seedLength, subsetSizes) = computeSubsetSizes goodBits totalBits
         seed                      = useFixedNumber $ fromIntegral seedLength
         subsets                   = pickSubsets totalBits subsetSizes bits
-    in (foldl' universalHash) <$> seed <*> subsets
+    in foldl' universalHash <$> seed <*> subsets
 
 
 

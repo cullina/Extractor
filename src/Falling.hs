@@ -55,4 +55,4 @@ fallingFromUnifs :: (Num a) => [UnifNat a] -> Falling a
 fallingFromUnifs = foldr joinF (Falling 0 [])
 
 
-allFallings max len = sequence . map allUnifs $ take len [max, max - 1 ..]
+allFallings max len = mapM allUnifs $ take len [max, max - 1 ..]

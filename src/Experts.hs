@@ -20,13 +20,13 @@ instance Expert ConstantExpert where
   updateModel _ e = e
 
 simExpert :: (Expert a) => a -> [Bool] -> (a,[(Bool, Double)])
-simExpert expert = mapAccumL f expert 
+simExpert = mapAccumL f
   where 
     f :: (Expert a) => a -> Bool -> (a, (Bool, Double))
     f expert b = (update b expert, (b, predict expert))
     
 simTwoExpert :: (Expert a) => (a,a) -> [Bool] -> ((a,a),[(Bool, Double)])
-simTwoExpert expert = mapAccumL f expert 
+simTwoExpert = mapAccumL f
   where 
     f :: (Expert a) => (a,a) -> Bool -> ((a,a), (Bool, Double))
     f (e1, e2) b = ((update b e1, update b e2), (b, (predict e1 + predict e2) / 2))

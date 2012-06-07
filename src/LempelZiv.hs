@@ -40,7 +40,7 @@ bitsNeeded' n m logM =
            else bitsNeeded' (n+1) (2*m) (logM+1)                      
 
 
-serialize = concat . map serialize' . zip bitsNeeded
+serialize = concatMap serialize' . zip bitsNeeded
 
 serialize' (m, TerminalChunk (Just k)) = intWToBits m [] k
 
@@ -54,7 +54,7 @@ deserialize = deserialize' bitsNeeded
 deserialize' (m:ms) bs =
     let (k, bs')    = splitAt m bs
     in case bs' of
-         []       -> TerminalChunk k : []
+         []       -> [TerminalChunk k]
          (b:bs'') -> Chunk k b : deserialize' ms bs''
 
 deserialize' [] _ = error "List of split sizes is too short."
@@ -102,9 +102,9 @@ deserialize2' t (m:ms) bs =
         inferedBit = inferOtherChild $ safeGetValue (snd t) k'
         t'         = append t (False, False)
     in case (inferedBit, bs') of
-         (Just _, b:[])   -> Chunk k b : []
+         (Just _, b:[])    -> [Chunk k b]
          (Just iB, _)      -> Chunk k iB : deserialize2' (markChild iB t' k') ms bs'
-         (Nothing, [])     -> TerminalChunk k : []
+         (Nothing, [])     -> [TerminalChunk k]
          (Nothing, b:bs'') -> Chunk k b : deserialize2' (markChild b t' k') ms bs''
 
 deserialize2' _ [] _ = error "List of split sizes is too short."

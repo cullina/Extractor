@@ -46,7 +46,7 @@ disect us split =
 decisions [] _ = []
 decisions (u:us) split = 
   let (b, v) = decision split u  
-  in (b, v) : decisions us (if b then (split - 1) else split)
+  in (b, v) : decisions us (if b then split - 1 else split)
 
 
 cyclePerm _ []     = []
@@ -65,7 +65,7 @@ inverse :: (Integral a) => [a] -> [a]
 inverse p = permute p [0..]
 
 compose :: (Integral a) => [a] -> [a] -> [a]
-compose p q = permute (inverse p) q
+compose p = permute (inverse p)
 
 allPermutations :: Int -> [[Int]]
 allPermutations n = map perm $ allFallings n n

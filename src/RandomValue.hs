@@ -27,7 +27,7 @@ instance (Show b) => Show (RValue a b) where
     
 
 preMap _ (Done x)    = Done x
-preMap f (NotDone g) = NotDone $ (\a -> preMap f (g a)) . f
+preMap f (NotDone g) = NotDone $ (preMap f . g) . f
 
 composeRValues :: RValue a b -> RValue b c -> RValue a c
 
@@ -95,7 +95,7 @@ toMaybeND :: RValue a b -> Maybe (a -> RValue a b)
 toMaybeND (Done _)    = Nothing
 toMaybeND (NotDone f) = Just f
 
-allDone = sequence . map toMaybeD
+allDone = mapM toMaybeD
 
 {-
 untilAllDone :: ([RValue a b] -> RValue a [RValue a b]) -> [RValue a b] -> RValue a [b]

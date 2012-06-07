@@ -11,13 +11,13 @@ import SubsetSelection
 primitiveTest charPoly@(Poly len _) =
     let divisors = divisorsOfPowerOf2 len
         powers   = map (toInt . powerOfX charPoly) divisors
-    in all (1 /=) powers
+    in notElem 1 powers
 
 -- special case some small Mersenne primes, factorize everything else
 
 divisorsOfPowerOf2 k =
     let n        = 2 ^ k - 1
-    in if any (k ==) [31,61,89,107,127,521,607]
+    in if k `elem` [31,61,89,107,127,521,607]
        then [1]
        else map (quot n . fst) (factorize n)
 

@@ -9,18 +9,18 @@ subsetToComposition = foldr sTC (0, [])
         sTC False (n, ns) = (n+1, ns)
                       
 compositionToSubset = unfoldr cTS
-  where cTS (0,[])     = Nothing
-        cTS (0,(n:ns)) = Just (True,  (n,   ns))
-        cTS (n,ns)     = Just (False, (n-1, ns))
+  where cTS (0, [])   = Nothing
+        cTS (0, n:ns) = Just (True,  (n,   ns))
+        cTS (n, ns)   = Just (False, (n-1, ns))
 
 subsetToSpanningComposition = foldr sTSC (1, [])
   where sTSC True  (n, ns) = (1, n:ns)
         sTSC False (n, ns) = (n+1, ns)
                       
 spanningCompositionToSubset = unfoldr sCTS
-  where sCTS (1,[])     = Nothing
-        sCTS (1,(n:ns)) = Just (True,  (n,   ns))
-        sCTS (n,ns)     = Just (False, (n-1, ns))
+  where sCTS (1, [])   = Nothing
+        sCTS (1, n:ns) = Just (True,  (n,   ns))
+        sCTS (n, ns)   = Just (False, (n-1, ns))
 
 equalityToInequality (x, xs) = (xs, x + sum xs)
 

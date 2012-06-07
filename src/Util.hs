@@ -73,7 +73,7 @@ church n f = f . church (n - 1) f
 splitJoin :: (b -> b -> c) -> (a -> b) -> (a -> b) -> a -> c
 splitJoin h f g x = h (f x) (g x)
 
-andTest :: (a -> Bool) -> (a -> Bool) -> (a -> Bool)
+andTest :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 andTest = splitJoin (&&)
 
 insertNothings :: [[a]] -> [Maybe a]

@@ -113,13 +113,11 @@ nonbinaryPrefixCodeToInt _base _max n [] = (n, Nothing)
 codeToIndices incr max bs =
     case prefixCodeToInt max bs of
       (index, Just bs') -> index : codeToIndices incr (max + incr) bs'
-      (index, Nothing)  -> index : []
+      (index, Nothing)  -> [index]
           
 
-indicesToCode _incr _max [] = []
-
-indicesToCode _incr _max (n:[]) = natToBits n : []
-
+indicesToCode _incr _max []     = []
+indicesToCode _incr _max (n:[]) = [natToBits n]
 indicesToCode incr  max  (n:ns) = natToBits (n + max) : indicesToCode incr (max + incr) ns
 
 ------------------------------------------------------
@@ -127,15 +125,12 @@ indicesToCode incr  max  (n:ns) = natToBits (n + max) : indicesToCode incr (max 
 computeIndices subTree tree bs = 
     case bitsToIndex subTree tree bs of
       (index, Just (tree', bs')) -> index : computeIndices subTree tree' bs'
-      (index, Nothing)           -> index : []
+      (index, Nothing)           -> [index]
 
 
-translateIndices _subTree _tree [] = []
-
-translateIndices _subTree tree (n:[]) =
-    internalIndexToBits tree n : []
-
-translateIndices subTree tree (n:ns) =
+translateIndices _subTree _tree []     = []
+translateIndices _subTree tree  (n:[]) = [internalIndexToBits tree n]
+translateIndices subTree  tree  (n:ns) =
     let (bits, tree') = indexToBits subTree tree n
     in bits : translateIndices subTree tree' ns
 

@@ -7,7 +7,7 @@ reverseInits :: [a] -> [[a]]
 reverseInits xs = unfoldr f ([], xs)
   where
     f :: ([a], [a]) -> Maybe ([a], ([a],[a]))
-    f (ys, [])   = Nothing
+    f (_,  [])   = Nothing
     f (ys, x:xs) = 
       let ys' = x:ys
       in Just (ys', (ys',xs))

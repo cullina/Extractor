@@ -6,7 +6,7 @@ import Util(church)
 import ListSet(listSetFromList, fastHist)
 import SubstringCounting
 import Data.List(mapAccumL)
-import Data.Maybe(catMaybes)
+import Data.Maybe(mapMaybe)
 import Control.Monad((<=<))
 import Control.Applicative((<$>))
 
@@ -39,7 +39,7 @@ deletion :: [Bool] -> [Bool] -> Maybe [Bool]
 deletion _      []         = Just []
 deletion []     (_:_)      = Nothing
 deletion (b:bs) (False:ps) = (b :) <$> deletion bs ps
-deletion (b:bs) (True:ps)  = ((not b) :) <$> (flip deletion ps =<< match (not b) bs)
+deletion (b:bs) (True:ps)  = (not b :) <$> (flip deletion ps =<< match (not b) bs)
     
 match :: Bool -> [Bool] -> Maybe [Bool]
 match _ []     = Nothing 
@@ -72,7 +72,7 @@ allInsertions :: Int -> [Bool] -> [[Bool]]
 allInsertions s bs = map (insertion2 bs) (atMostSOnes (length bs + s) s)
 
 allDeletions :: Int -> [Bool] -> [[Bool]]
-allDeletions s bs = catMaybes $ map (deletion2 bs) (atMostSOnes (length bs - s) s)
+allDeletions s bs = mapMaybe (deletion2 bs) (atMostSOnes (length bs - s) s)
 
 
 allDeletions2 :: Ord a => Int -> [a] ->[[a]]
@@ -98,7 +98,7 @@ vtClass n k = filter ((k ==) . vtWeight) (allBitStrings n)
 
 vtClasses n = map (vtClass n) [0..n]
 
-vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + (max k (n - k)))) (allSubsets n k) 
+vtLevelClass n k a = filter ((a ==) . vtWeightM (1 + max k (n - k))) (allSubsets n k) 
 
 vtLevelClassSizes n k =   
   let k' = max k (n-k) 
@@ -137,7 +137,7 @@ allMirror = map f . allBitStrings
 derivative :: [Bool] -> [Bool]
 derivative [] = []
 derivative [_] = []
-derivative (x:y:zs) = (xor x y) : derivative (y:zs)
+derivative (x:y:zs) = xor x y : derivative (y:zs)
 
 hn :: Int -> [Bool] -> Int
 hn n = hWeight . church n derivative

@@ -80,7 +80,7 @@ instance Expert RestrictedMarkovExpert where
 newRestrictedMarkovExpert :: [Bool] -> RestrictedMarkovExpert
 newRestrictedMarkovExpert mask = 
   let n = length mask
-      m = 1 + length ((filter id) mask)
+      m = 1 + length (filter id mask)
   in RME n mask (newTree m) []
                               
 
@@ -113,9 +113,9 @@ incLocation (Branch _ _ _) [] = Nothing
     (Just newL, False) -> Just (Branch (n+1) newL r)
 -}
 incLocation (Branch n l r) (True:bs) =
-  fmap (\t -> Branch (n+1) l t) (incLocation r bs)
+  fmap (Branch (n+1) l) (incLocation r bs)
 incLocation (Branch n l r) (False:bs) =
-  fmap (\t -> Branch (n+1) t r) (incLocation l bs)
+  fmap (flip (Branch (n+1)) r) (incLocation l bs)
 
 newUniversalExpert :: UniversalExpert
 newUniversalExpert = UE (newTree 1) []
@@ -128,7 +128,7 @@ incPair (f, t) False = (f + 1, t)
 
 incList :: [(Int, Int)] -> Int -> Bool -> [(Int,Int)]
 incList []     _ _  = error "Empty list"
-incList (x:xs) 0 b  = (incPair x b) : xs
+incList (x:xs) 0 b  = incPair x b : xs
 incList (x:xs) n b  = x : incList xs (n - 1) b 
 
 count :: [Bool] -> Int
@@ -194,7 +194,7 @@ instance Show RunsExpert where
 
 instance Expert RunsExpert where
   predict (RE stats Nothing)     = 0.5
-  predict (RE stats (Just (b, n))) = toProb ((indexPair stats b) !! n)
+  predict (RE stats (Just (b, n))) = toProb (indexPair stats b !! n)
   
   updateState newB (RE stats Nothing)       = RE stats (Just (newB, 0))
   updateState newB (RE stats (Just (b, n))) = RE stats (Just (newB, if b == newB then n + 1 else 0))

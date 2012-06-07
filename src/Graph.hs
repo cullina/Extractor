@@ -15,15 +15,15 @@ newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
 data ContigEdgeList = CEdgeList Int (EdgeList Int)
 
 
-fromEdgeList (EdgeList x)       = x
+fromEdgeList    (EdgeList x)    = x
 fromDirEdgeList (DirEdgeList x) = x
-fromFullAdj (FullAdj x)         = x
-fromFwdAdj (FwdAdj x)           = x
-fromCEdgeList (CEdgeList _ x)   = x
+fromFullAdj     (FullAdj x)     = x
+fromFwdAdj      (FwdAdj x)      = x
+fromCEdgeList   (CEdgeList _ x) = x
 
 
-fstVertex :: (FwdAdj a) -> Maybe ((a,[a]), FwdAdj a) 
-fstVertex (FwdAdj []) = Nothing
+fstVertex :: FwdAdj a -> Maybe ((a,[a]), FwdAdj a) 
+fstVertex (FwdAdj [])     = Nothing
 fstVertex (FwdAdj (v:vs)) = Just (v, FwdAdj vs)
 
 adjListFull :: (Ord a, Eq a) => EdgeList a -> FullAdj a
@@ -104,7 +104,7 @@ graphFileLine (x, y) = show x ++ " " ++ show y ++ "\n"
 --------
 
 induceSubgraph :: Ord a => Set a -> EdgeList a -> EdgeList a
-induceSubgraph vSet = induceSubgraphByTest ((flip member) vSet)
+induceSubgraph vSet = induceSubgraphByTest (`member` vSet)
         
 induceSubgraphByTest :: (a -> Bool) -> EdgeList a -> EdgeList a
 induceSubgraphByTest test (EdgeList es) = 
@@ -133,12 +133,10 @@ withinN es n v =
   
 
 matrixSquare :: Ord a => FullAdj a -> EdgeList a
-matrixSquare (FullAdj xs) = EdgeList $ mS xs
+matrixSquare (FullAdj xs) = EdgeList . concatMap f $ allPairs xs
   where 
-    mS [] = []
-    mS (x:xs) = concatMap (f x) xs ++ mS xs
-    f (x,xs) (y,ys) = 
-      if intersect xs ys
+    f ((x,xs), (y,ys)) = 
+      if xs `intersect` ys
       then [(x,y)]
       else []
 

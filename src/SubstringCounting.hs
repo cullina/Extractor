@@ -2,7 +2,6 @@ module SubstringCounting where
 
 import PowerSeries(seriesMult, seriesAdd, seriesOne, seriesZero)
 import Data.Monoid
-import Data.Tuple(swap)
 
 data SubStats = SS ((Bool,Bool) -> [Int])
 
@@ -62,6 +61,6 @@ entryMult a b i j k = seriesMult (a (i, k)) (b (k, j))
 -- Multiplies matrices of this form
 -- ( A(z^2)   zB(z^2) ) 
 -- (zC(z^2)    D(z^2) ) 
-evenOddMult :: ((Bool,Bool) -> [Int]) -> ((Bool,Bool) -> [Int]) -> ((Bool,Bool) -> [Int])
+evenOddMult :: ((Bool,Bool) -> [Int]) -> ((Bool,Bool) -> [Int]) -> (Bool,Bool) -> [Int]
 evenOddMult a b (i, j) = seriesAdd (f False) (f True)
   where f = evenOddEntryMult a b i j

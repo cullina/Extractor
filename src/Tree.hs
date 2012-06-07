@@ -5,6 +5,7 @@ module Tree where
 import Data.Maybe(fromJust)
 import Data.Foldable(foldrM)
 import Control.Monad((<=<), join)
+import Control.Applicative((<$>))
 import Util(mapFst)
 import RandomValue
 
@@ -84,7 +85,7 @@ tTreeToQTree :: Tree Triple a -> Tree ((->) Ordering) a
 tTreeToQTree = convertTree tritLookup
 
 qTreeToGTree :: [q] -> Tree ((->) q) a -> Tree [] a
-qTreeToGTree qs = convertTree (flip map qs)
+qTreeToGTree qs = convertTree (<$> qs)
 
 gTreeToBTree :: Tree [] a -> Tree Pair a
 gTreeToBTree = convertTree bitCoerce

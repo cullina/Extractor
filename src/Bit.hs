@@ -19,7 +19,7 @@ module Bit
 where
 
 import Data.List(foldl')
-
+import Control.Monad(replicateM)
 
 --Utility
 
@@ -102,5 +102,5 @@ pruneZeroes = dropWhile not
 allBits = [False, True]
 
 allBitStrings :: (Integral a) => a -> [[Bool]]
-allBitStrings n = sequence $ replicate (fromIntegral n) allBits
+allBitStrings n = replicateM (fromIntegral n) allBits
 
