@@ -133,19 +133,9 @@ withinN es n v =
   
 
 matrixSquare :: Ord a => FullAdj a -> EdgeList a
-matrixSquare (FullAdj xs) = EdgeList . concatMap f $ allPairs xs
+matrixSquare = EdgeList . map fst . filter (uncurry intersect . snd) . map transposePairs . allPairs . fromFullAdj
   where 
-    f ((x,xs), (y,ys)) = 
-      if xs `intersect` ys
-      then [(x,y)]
-      else []
-
-------------------
-
-
-
-
------
+    transposePairs ((w,x),(y,z)) = ((w,y),(x,z))
 
 allPairs [] = []
 allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
