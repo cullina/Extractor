@@ -3,5 +3,6 @@
 *.hs~
 *.dat
 *.png
+*.prof
 /dist/
 /graphs/
