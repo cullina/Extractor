@@ -7,19 +7,23 @@ import Data.Set(Set, member)
 import Util(andTest, mapFst, mapSnd, mapPair, toStandardInt)
 import ListSet
 
-
+newtype UnEdgeList a  = UnEdgeList [(a,a)] deriving Show
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
 newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
 newtype FullAdj a     = FullAdj [(a,[a])] deriving Show
 newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
 data ContigEdgeList = CEdgeList Int (EdgeList Int)
 
-
+fromUnEdgeList  (UnEdgeList x)  = x
 fromEdgeList    (EdgeList x)    = x
 fromDirEdgeList (DirEdgeList x) = x
 fromFullAdj     (FullAdj x)     = x
 fromFwdAdj      (FwdAdj x)      = x
 fromCEdgeList   (CEdgeList _ x) = x
+
+
+organizeEdges :: Ord a => UnEdgeList a -> EdgeList a
+organizeEdges = EdgeList . listSetFromList . fromUnEdgeList
 
 
 fstVertex :: FwdAdj a -> Maybe ((a,[a]), FwdAdj a) 
@@ -142,7 +146,8 @@ matrixSquare (FullAdj xs) = EdgeList . concatMap f $ allPairs xs
 
 ------------------
 
-
+testColoring :: (Eq b) => (a -> b) -> EdgeList a -> Bool
+testColoring f = all (uncurry (/=)) . map (mapPair f) . fromEdgeList
 
 
 -----
