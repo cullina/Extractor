@@ -1,6 +1,6 @@
 module SubstringCounting where
 
-import PowerSeries(EOPS(..))
+import PowerSeries(EOPS(..), expand)
 import Matrix
 import Data.Monoid
 
@@ -19,6 +19,9 @@ bStats True  = BMat $ lookupBB (Even [1], Zero, Odd [1], Even [1])
 bsStats :: [Bool] -> BMat EOPS
 bsStats = mconcat . map bStats
 
+sumStats :: BMat EOPS -> EOPS
+sumStats (BMat m) = (transpose sumVec `bbMatrixMult` m  `bbMatrixMult` sumVec) ((),())
+
 diffStats :: BMat EOPS -> EOPS
 diffStats (BMat m) = (transpose diffVec `bbMatrixMult` m  `bbMatrixMult` sumVec) ((),())
 
@@ -31,3 +34,9 @@ bsInvStats = mconcat . map bInvStats
 
 inversions :: InvStats -> Int
 inversions (IS _ _ n) = n
+
+partialDiffStats :: Int -> [Bool] -> [Int]
+partialDiffStats n = take n . expand . diffStats . bsStats
+
+indistinguishable :: Int -> [Bool] -> [Bool] -> Bool
+indistinguishable k x y = partialDiffStats k x == partialDiffStats k y
