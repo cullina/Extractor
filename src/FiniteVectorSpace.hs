@@ -37,6 +37,6 @@ greedyMaximalSet' _ set [] = set
 greedyMaximalSet' f xs (y:ys) = greedyMaximalSet' f (y:xs) (filter (f y) ys)
 
 
-maximumN p k = (+) k $ length $ maximalSet p k
+maximumN p k = (+) k . length $ maximalSet p k
 
 maximalSet p k = greedyMaximalSet (maxDist (p-1) k) $ allReducedVectors (p-1) k

@@ -117,7 +117,7 @@ polyRem a b =
 polyRem' a@(Poly la _) b@(Poly lb pb) =
     if lb > la
     then a
-    else let aa = prunePoly $ polySum a $ Poly la pb
+    else let aa = prunePoly . polySum a $ Poly la pb
          in polyRem' aa b
 
 
