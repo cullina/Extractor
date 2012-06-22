@@ -17,7 +17,8 @@ module Bit
      showTrues,
      to01,
      from01,
-     alternatingString
+     alternatingString,
+     alt
     )
 where
 
@@ -122,4 +123,7 @@ allBitStrings :: (Integral a) => a -> [[Bool]]
 allBitStrings n = replicateM (fromIntegral n) allBits
 
 alternatingString :: Bool -> Int -> [Bool]
-alternatingString b n  = take n $ cycle [b, not b]
+alternatingString b n  = take n $ alt b
+
+alt :: Bool -> [Bool]
+alt b = cycle [b, not b]
