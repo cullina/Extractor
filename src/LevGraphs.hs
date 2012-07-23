@@ -4,8 +4,7 @@ import Graph
 import LevOps
 import Bit(bitsToInt, allBitStrings)
 import SubsetSelection(allSubsets, subsetToInteger, choose)
-import Util(keepArg, keepArg2, andTest, mapFst, mapSnd)
-import ListSet(listSetFromList)
+import Util(keepArg, keepArg2, andTest, mapFst, mapSnd, mapPair)
 import Data.List(sort)
 import Data.Set(fromList)
   
@@ -14,11 +13,17 @@ levVertices = map (keepArg2 bitsToInt) . allBitStrings
 
 levEdgeSet s = fromList . concatMap (allPairs . sort) . basicCliques s
 
-levEdges s = mergeCliques id . basicCliques s
+levEdges :: Int -> Int -> EdgeList [Bool]
+levEdges s = organizeEdges . mergeCliques id . basicCliques s
 
-levIntEdges s = mergeCliques bitsToInt . basicCliques s
+testLevColoring :: (Ord a, Eq a) => ([Bool] -> a) -> Int -> Int -> [(([Bool], a), ([Bool], a))]
+testLevColoring f s = filter (uncurry (==) . mapPair snd) . fromUnEdgeList . mergeCliques (keepArg f) . basicCliques s
 
-levLevelEdges k = mergeCliques id . levelCliques k
+levIntEdges :: Int -> Int -> EdgeList Int
+levIntEdges s = organizeEdges . mergeCliques bitsToInt . basicCliques s
+
+levLevelEdges :: Int -> Int -> EdgeList [Bool]
+levLevelEdges k = organizeEdges . mergeCliques id . levelCliques k
 
 levLevelIntEdges :: Int -> Int -> EdgeList Int
 levLevelIntEdges k n = fromCEdgeList $ levLevelIntCEdges k n
@@ -26,7 +31,7 @@ levLevelIntEdges k n = fromCEdgeList $ levLevelIntCEdges k n
 levLevelIntCEdges :: Int -> Int -> ContigEdgeList
 levLevelIntCEdges k n = CEdgeList (choose n k) es 
   where 
-    es = mergeCliques subsetToInteger $ levelCliques k n
+    es = organizeEdges . mergeCliques subsetToInteger $ levelCliques k n
 
 levLevelTwoEdges k = matrixSquare . adjListFull . levLevelEdges k
 
@@ -41,8 +46,8 @@ levelCliques :: Int -> Int -> [[[Bool]]]
 levelCliques k n = map allSingleOneInsertions  (allSubsets (n - 1) (k - 1)) ++ 
                    map allSingleZeroInsertions (allSubsets (n - 1) k)
 
-mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> EdgeList b
-mergeCliques f = EdgeList . listSetFromList . concatMap (allPairs . sort . map f)
+mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> UnEdgeList b
+mergeCliques f = UnEdgeList . concatMap (allPairs . sort . map f)
 
 --------------------
 vtZeroEdges :: Int -> EdgeList Int

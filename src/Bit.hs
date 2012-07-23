@@ -14,7 +14,10 @@ module Bit
      pruneZeroes,
      allBitStrings,
      showBits,
-     showTrues
+     showTrues,
+     to01,
+     from01,
+     alternatingString
     )
 where
 
@@ -22,6 +25,20 @@ import Data.List(foldl')
 import Control.Monad(replicateM)
 
 --Utility
+to01 :: [Bool] -> [Int]
+to01 = map f 
+  where
+    f True  = 1
+    f False = 0
+    
+from01 :: [Int] -> [Bool]
+from01 = map f 
+  where
+    f 1 = True
+    f 0 = False
+    f _ = error "Not 0 or 1"
+
+
 
 showBits :: [Bool] -> String
 showBits = map f
@@ -104,3 +121,5 @@ allBits = [False, True]
 allBitStrings :: (Integral a) => a -> [[Bool]]
 allBitStrings n = replicateM (fromIntegral n) allBits
 
+alternatingString :: Bool -> Int -> [Bool]
+alternatingString b n  = take n $ cycle [b, not b]

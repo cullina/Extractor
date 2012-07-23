@@ -45,7 +45,7 @@ Cabal-version:       >=1.2
 
 
 Executable graph
-  Main-is: Main.hs   
+  Main-is: Main.hs
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
@@ -55,12 +55,17 @@ Executable degree
   hs-source-dirs:  src
 
 Executable color
-  Main-is: ColorMain.hs   
+  Main-is: ColorMain.hs
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable exact
-  Main-is: ExactMain.hs   
+  Main-is: ExactMain.hs
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  hs-source-dirs:  src
+
+Executable stats
+  Main-is: StatsMain.hs
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
