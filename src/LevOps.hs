@@ -9,6 +9,7 @@ import Data.List(mapAccumL)
 import Data.Maybe(mapMaybe)
 import Control.Monad((<=<))
 import Control.Applicative((<$>))
+import Data.List(foldl')
 
 allSingleInsertions :: [Bool] -> [[Bool]]
 allSingleInsertions []     = [[True],[False]]
@@ -113,6 +114,20 @@ genWeight ws max = (`mod` max) . sum . getSubset ws
 
 neighborhood :: Int -> [Bool] -> Int
 neighborhood s = length . listSetFromList . map bitsToInt . (allInsertions s <=< allDeletions s)
+
+data P = P !Int !Int deriving Show
+
+maxDegree :: Int -> Int -> P
+maxDegree s n = 
+  let 
+    xs      = atMostSOnes n s
+    ys      = atMostSOnes (n - s) s
+    allD bs = mapMaybe (deletion2 bs) ys
+    allI bs = map (insertion2 bs) xs
+    maxSum (P a b) n = P (max a n) (b + n - 1)
+    neigh = length . listSetFromList . map bitsToInt . (allI <=< allD)
+  in foldl' maxSum (P 0 0) . map neigh $ allBitStrings n
+
 
 ----
 

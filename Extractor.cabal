@@ -49,6 +49,11 @@ Executable graph
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
+Executable degree
+  Main-is: DegreeMain.hs   
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  hs-source-dirs:  src
+
 Executable color
   Main-is: ColorMain.hs   
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
