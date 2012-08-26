@@ -1,6 +1,6 @@
 module LevOps where
 
-import Bit(bitsToInt, allBitStrings, xor)
+import Bit(bitsToInt, allBitStrings, xor, alt)
 import SubsetSelection(allSubsets, getSubset)
 import Util(church)
 import ListSet(listSetFromList, fastHist)
@@ -132,12 +132,11 @@ maxDegree s n =
 ----
 
 fromAntiruns :: [Int] -> [Bool]
-fromAntiruns = zipWith xor alt . fromRuns
-  where alt = concat (repeat [False,True])
+fromAntiruns = zipWith xor (alt False) . fromRuns
 
 fromRuns :: [Int] -> [Bool]
-fromRuns ns = concatMap (uncurry replicate) $ zip ns alt
-  where alt = concat (repeat [False,True])
+fromRuns ns = concatMap (uncurry replicate) $ zip ns (alt False)
+
         
 evenAntiruns k m = fromAntiruns $ replicate k m
 
