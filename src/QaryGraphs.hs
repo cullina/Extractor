@@ -42,15 +42,19 @@ intToQs q = reverse . unfoldr toQs
 qIf :: Int -> Int -> Qary -> Int
 qIf q a (Qary b) = q * a + b
 
+qLevelCliques :: [Int] -> CliqueList [Qary]
+qLevelCliques = CliqueList . map (qIns . map Qary) . allMultinomials
+
 qLevelIntEdges :: [Int] -> EdgeList Int
-qLevelIntEdges ks = organizeEdges . mergeCliques (qsToInt (length ks)) . map (qIns . map Qary) $ allMultinomials ks
+qLevelIntEdges ks = organizeEdges . mergeCliques . fmap (qsToInt (length ks)) $ qLevelCliques ks
 
 qMiddleLevelIntEdges :: Int -> Int -> EdgeList Int
 qMiddleLevelIntEdges q k = 
-  organizeEdges . mergeCliques (qsToInt q) . map (qIns . map Qary) . allMultinomials $ replicate q k
+  organizeEdges . mergeCliques . fmap (qsToInt q) . qLevelCliques $ replicate q k
+
 
 qIntEdges :: Int -> Int -> EdgeList Int
-qIntEdges q n = organizeEdges . mergeCliques (qsToInt q) . map (singleQInsertions q) . allQStrings q $ n - 1
+qIntEdges q n = organizeEdges . mergeCliques . fmap (qsToInt q) . CliqueList . map (singleQInsertions q) . allQStrings q $ n - 1
                 
 qInsertionStars :: Int -> Int -> [(Int, [Int])] 
 qInsertionStars q n = 

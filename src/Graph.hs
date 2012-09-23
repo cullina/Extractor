@@ -7,12 +7,14 @@ import Data.IntSet(IntSet)
 import Data.Function(on)
 import Data.Set(Set, member)
 import Util(andTest, mapFst, mapSnd, mapPair, toStandardInt)
-import ListSet
+import StrictLists
+import ListSet(intersect,asymDiff)
 
 newtype UnEdgeList a  = UnEdgeList [(a,a)] deriving Show
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
 newtype FullAdj a     = FullAdj [(a,[a])] deriving Show
 newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
+newtype CliqueList a  = CliqueList [[a]] deriving Show
 data ContigEdgeList = CEdgeList Int (EdgeList Int)
 
 data ArrayGraph = ArrayGraph (IM.IntMap [Int]) Subgraph
@@ -23,6 +25,10 @@ fromEdgeList    (EdgeList x)    = x
 fromFullAdj     (FullAdj x)     = x
 fromFwdAdj      (FwdAdj x)      = x
 fromCEdgeList   (CEdgeList _ x) = x
+fromCliqueList  (CliqueList x)  = x
+
+instance Functor CliqueList where
+  fmap f (CliqueList x) = CliqueList (map (map f) x)
 
 
 organizeEdges :: Ord a => UnEdgeList a -> EdgeList a
@@ -151,23 +157,32 @@ complement :: (Eq a, Ord a) => EdgeList a -> EdgeList a
 complement es = EdgeList $ asymDiff (allPairs (vertexList es)) (sort (fromEdgeList es))
 
 ----------------------------------------------------
-{-
-arrayGraph :: FullAdj Int -> ArrayGraph
-arrayGraph (FullAdj vs) = 
-  let n = length vs
-      g = listArray (0, n - 1) $ map snd vs
-      ds = listArray (0, n - 1) $ map (length . snd) vs
-      vs' = fromAscList [0..n-1]
-  in ArrayGraph g (Subgraph vs' ds)
-  -}   
+buildArrayGraph :: IM.IntMap [Int] -> ArrayGraph
+buildArrayGraph g =
+  let ds = map (mapSnd length) $ IM.assocs g
+      vs = IM.keysSet g
+  in ArrayGraph g (Subgraph vs ds)
+     
+arrayGraphFromCliques :: CliqueList Int -> ArrayGraph
+arrayGraphFromCliques = buildArrayGraph . IM.fromList . f . map complete . fromCliqueList
+  where 
+    f :: [SL (SP Int (SL Int))] -> [(Int,[Int])]
+    f = map fromS . fromSL . listMapUnion . fromList
+      
 arrayGraph :: UnEdgeList Int -> ArrayGraph
-arrayGraph es = 
-  let g = buildArray2 . addReverses $ fromUnEdgeList es
-      degs = map (mapSnd length) $ IM.assocs g
-  in ArrayGraph g (Subgraph (IM.keysSet g) degs)
+arrayGraph es = buildArrayGraph . buildArray2 . addReverses $ fromUnEdgeList es
      
 --buildArray :: [(Int,[Int])] -> IM.IntMap [Int]
 --buildArray = IM.map listSetFromList . IM.fromListWith (++)
 
 buildArray2 :: [(Int,Int)] -> IM.IntMap [Int]
 buildArray2 = IM.fromList . listMapFromList
+
+--------------------
+
+complete :: Ord a => [a] -> SL (SP a (SL a))
+complete vs = 
+  let newVs = listSetFromListS $ fromList vs
+      f :: Ord a => a -> SL a -> SP a (SL a)
+      f x ys = SP x (deleteS x ys) 
+  in mapS (flip f newVs) newVs
