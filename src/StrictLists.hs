@@ -62,6 +62,10 @@ listMapFromListS = listMapUnion . mapL (flip SCons SNil)
 listMapUnion :: (Ord a, Ord b) => LL (SL (SP a (SL b))) -> SL (SP a (SL b))
 listMapUnion = mergeAll mergeMaps
 
+histogram :: Ord a => [a] -> [(a,Int)]
+histogram = map toPair . fromSL . mergeAll mergeMultisets . fromList . map (flip SCons SNil . flip SP 1)
+
+
                    
 mergeAll :: (SL a -> SL a -> SL a) -> LL (SL a) -> SL a
 mergeAll _     LNil           = SNil
@@ -90,3 +94,11 @@ mergeMaps xx@(SCons (SP x fx) xs) yy@(SCons (SP y fy) ys) =
 mergeMaps xx SNil = xx
 mergeMaps SNil yy = yy
 
+mergeMultisets :: (Ord a) => SL (SP a Int) -> SL (SP a Int) -> SL (SP a Int)
+mergeMultisets xx@(SCons (SP x fx) xs) yy@(SCons (SP y fy) ys) = 
+  case compare x y of 
+    EQ -> SCons (SP x (fx + fy)) (mergeMultisets xs ys)
+    LT -> SCons (SP x fx)        (mergeMultisets xs yy)
+    GT -> SCons (SP y fy)        (mergeMultisets xx ys)
+mergeMultisets xx SNil = xx
+mergeMultisets SNil yy = yy

@@ -9,20 +9,23 @@ import Data.List(sort)
 
 levVertices = map (keepArg2 bitsToInt) . allBitStrings
 
-levEdges :: Int -> Int -> EdgeList [Bool]
-levEdges s = organizeEdges . mergeCliques . basicCliques s
-
-testLevColoring :: (Ord a, Eq a) => ([Bool] -> a) -> Int -> Int -> [(([Bool], a), ([Bool], a))]
-testLevColoring f s = filter (uncurry (==) . mapPair snd) . fromUnEdgeList . mergeCliques . fmap (keepArg f) . basicCliques s
+levGraph :: Int -> Int -> FullAdj [Bool]
+levGraph s = fromCliques . basicCliques s
 
 levIntGraph :: Int -> Int -> FullAdj Int
 levIntGraph s = fromCliques . fmap bitsToInt . basicCliques s
+
+levEdges :: Int -> Int -> EdgeList [Bool]
+levEdges s = organizeEdges . mergeCliques . basicCliques s
 
 levIntEdges :: Int -> Int -> EdgeList Int
 levIntEdges s = organizeEdges . levIntUEdges s
 
 levIntUEdges :: Int -> Int -> UnEdgeList Int
 levIntUEdges s = mergeCliques . fmap bitsToInt . basicCliques s
+
+levLevelGraph :: Int -> Int -> FullAdj [Bool]
+levLevelGraph k = fromCliques . levelCliques k
 
 levLevelEdges :: Int -> Int -> EdgeList [Bool]
 levLevelEdges k = organizeEdges . mergeCliques . levelCliques k
@@ -75,3 +78,6 @@ vtZeroLevelEdges :: Int -> EdgeList Int
 vtZeroLevelEdges n = renameVertices bitsToInt . induceSubgraphByTest ((0 ==) . vtWeightM (n+1)) $ levLevelTwoEdges n (2*n)
 
 -------------------
+
+testLevColoring :: (Ord a, Eq a) => ([Bool] -> a) -> Int -> Int -> [(([Bool], a), ([Bool], a))]
+testLevColoring f s = filter (uncurry (==) . mapPair snd) . fromUnEdgeList . mergeCliques . fmap (keepArg f) . basicCliques s

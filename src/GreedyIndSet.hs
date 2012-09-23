@@ -45,3 +45,10 @@ greedyIndSet (ArrayGraph graph sg) = gis sg
       case minDegs ds of
         []    -> []
         (x:_) -> x : gis (updateSubgraph graph sg x)
+        
+greedyIndSets :: ArrayGraph -> [[Int]]
+greedyIndSets (ArrayGraph graph sg) = gis sg
+  where
+    f sg x = map (x :) (gis (updateSubgraph graph sg x))
+    gis (Subgraph _ []) = [[]]
+    gis sg@(Subgraph _ ds) = concatMap (f sg) $ minDegs ds

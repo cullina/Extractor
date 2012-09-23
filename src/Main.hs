@@ -3,7 +3,7 @@ module Main where
 import Graph
 import GraphDegree
 import GraphAlgorithms(maxCliques, maxIndepSets, greedyIndepSet, allMaxIndepSets)
-import LevGraphs(levIntEdges, levLevelIntEdges, levLevelTwoIntEdges, vtZeroEdges, vtZeroLevelEdges, firstLevels, midLevels)
+import LevGraphs(levIntGraph, levLevelIntEdges, levLevelTwoIntEdges, vtZeroEdges, vtZeroLevelEdges, firstLevels, midLevels)
 import QaryGraphs(qMiddleLevelIntEdges)
 import Util(argMaximumsSoFar)
 import System.Environment(getArgs)
@@ -15,8 +15,8 @@ f [t,g,k,n] = mapM_ (test t) $ gen (read g) (read k) (read n)
 f _ = error "Need 4 args."
 
 gen :: Int -> Int -> Int -> [FullAdj Int]
-gen 0 s n = map (adjListFull . levIntEdges s) [1..n]
-gen 1 k n = map (adjListFull . levIntEdges k) [n]
+gen 0 s n = map (levIntGraph s) [1..n]
+gen 1 s n = map (levIntGraph s) [n]
 gen 2 k n = map (adjListFull . levLevelIntEdges k) [k+1..n]
 gen 3 _ n = map (\x -> adjListFull $ levLevelIntEdges x (2*x)) [1..n]
 gen 4 _ n = map (\x -> adjListFull $ levLevelIntEdges x (3*x)) [1..n]
