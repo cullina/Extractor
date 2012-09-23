@@ -20,7 +20,10 @@ testLevColoring :: (Ord a, Eq a) => ([Bool] -> a) -> Int -> Int -> [(([Bool], a)
 testLevColoring f s = filter (uncurry (==) . mapPair snd) . fromUnEdgeList . mergeCliques (keepArg f) . basicCliques s
 
 levIntEdges :: Int -> Int -> EdgeList Int
-levIntEdges s = organizeEdges . mergeCliques bitsToInt . basicCliques s
+levIntEdges s = organizeEdges . levIntUEdges s
+
+levIntUEdges :: Int -> Int -> UnEdgeList Int
+levIntUEdges s = mergeCliques bitsToInt . basicCliques s
 
 levLevelEdges :: Int -> Int -> EdgeList [Bool]
 levLevelEdges k = organizeEdges . mergeCliques id . levelCliques k
@@ -37,7 +40,9 @@ levLevelTwoEdges k = matrixSquare . adjListFull . levLevelEdges k
 
 levLevelTwoIntEdges k = arraySquare . adjArray . levLevelIntCEdges k
 
-basicCliques s n = map (allInsertions s) (allBitStrings (n - s))
+basicCliques :: Int -> Int -> [[[Bool]]]
+basicCliques s n = map (\x -> map ($ x) inFns) (allBitStrings (n - s))
+  where inFns = allInsertionFns n s              
 
 insertionStars s n = 
   map (mapFst bitsToInt . mapSnd (map bitsToInt) . keepArg (allInsertions s)) $ allBitStrings (n - s)
@@ -47,7 +52,7 @@ levelCliques k n = map allSingleOneInsertions  (allSubsets (n - 1) (k - 1)) ++
                    map allSingleZeroInsertions (allSubsets (n - 1) k)
 
 mergeCliques :: (Ord b, Eq b) => (a -> b) -> [[a]] -> UnEdgeList b
-mergeCliques f = UnEdgeList . concatMap (allPairs . sort . map f)
+mergeCliques f = UnEdgeList . concatMap (allPairs . map f)
 
 --------------------
 vtZeroEdges :: Int -> EdgeList Int

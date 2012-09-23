@@ -69,13 +69,18 @@ Executable stats
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
+Executable greedy
+  Main-is: GreedyMain.hs
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  hs-source-dirs:  src
+
 
 --Library
   -- Modules exported by the library.
   --Exposed-modules:     UniversalHash, UnbalancedTree, Sample, PrefixCode, Levenshtein, LempelZiv, FiniteVectorSpace, Fibonacci, BinaryFieldTransform, RandomDistribution, DoublyRandomValue, RandomStream
   
   -- Packages needed in order to build this package.
-  Build-depends:  base >= 4.0, mtl >= 2, random >= 1, containers, array
+  Build-depends:  base >= 4.0, mtl >= 2, random >= 1, containers >= 0.5, array
 
   --ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts
   --hs-source-dirs:  src

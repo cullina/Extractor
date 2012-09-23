@@ -1,7 +1,9 @@
 module Graph where
 
-import Data.List(sort, sortBy)
+import Data.List(sort, sortBy)--, foldl')
 import Data.Array(Array, listArray, (!), range, bounds)
+import qualified Data.IntMap.Strict as IM
+import Data.IntSet(IntSet)
 import Data.Function(on)
 import Data.Set(Set, member)
 import Util(andTest, mapFst, mapSnd, mapPair, toStandardInt)
@@ -9,14 +11,15 @@ import ListSet
 
 newtype UnEdgeList a  = UnEdgeList [(a,a)] deriving Show
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
-newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
 newtype FullAdj a     = FullAdj [(a,[a])] deriving Show
 newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
 data ContigEdgeList = CEdgeList Int (EdgeList Int)
 
+data ArrayGraph = ArrayGraph (IM.IntMap [Int]) Subgraph
+data Subgraph = Subgraph IntSet [(Int,Int)]
+
 fromUnEdgeList  (UnEdgeList x)  = x
 fromEdgeList    (EdgeList x)    = x
-fromDirEdgeList (DirEdgeList x) = x
 fromFullAdj     (FullAdj x)     = x
 fromFwdAdj      (FwdAdj x)      = x
 fromCEdgeList   (CEdgeList _ x) = x
@@ -52,8 +55,8 @@ deleteVertexEL x = EdgeList . filter (f x) . fromEdgeList
 adjList :: (Ord a, Eq a) => EdgeList a -> FwdAdj a
 adjList = removeBackLinks . adjListFull
 
-adjListFull2 :: (Ord a, Eq a) => EdgeList a -> FullAdj a
-adjListFull2 = FullAdj . groupByFst . sort . fromDirEdgeList . addReverses
+--adjListFull2 :: (Ord a, Eq a) => EdgeList a -> FullAdj a
+--adjListFull2 = FullAdj . groupByFst . sort . addReverses . fromEdgeList
 
 sortByDegree :: (Ord a, Eq a) => FullAdj a -> FullAdj Int
 sortByDegree (FullAdj xs) =  
@@ -67,8 +70,8 @@ relabelGraph :: (Ord b, Eq b) => (a -> b) -> [(a,[a])] -> [(b,[b])]
 relabelGraph f = sort . map (mapFst f . mapSnd (sort . map f)) 
 
 
-addReverses :: EdgeList a -> DirEdgeList a
-addReverses (EdgeList es) = DirEdgeList $ concatMap f es
+addReverses :: [(a,a)] -> [(a,a)]
+addReverses = concatMap f
   where
     f (x,y) = [(x,y),(y,x)]
 
@@ -147,3 +150,24 @@ allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
 complement :: (Eq a, Ord a) => EdgeList a -> EdgeList a
 complement es = EdgeList $ asymDiff (allPairs (vertexList es)) (sort (fromEdgeList es))
 
+----------------------------------------------------
+{-
+arrayGraph :: FullAdj Int -> ArrayGraph
+arrayGraph (FullAdj vs) = 
+  let n = length vs
+      g = listArray (0, n - 1) $ map snd vs
+      ds = listArray (0, n - 1) $ map (length . snd) vs
+      vs' = fromAscList [0..n-1]
+  in ArrayGraph g (Subgraph vs' ds)
+  -}   
+arrayGraph :: UnEdgeList Int -> ArrayGraph
+arrayGraph es = 
+  let g = buildArray2 . addReverses $ fromUnEdgeList es
+      degs = map (mapSnd length) $ IM.assocs g
+  in ArrayGraph g (Subgraph (IM.keysSet g) degs)
+     
+--buildArray :: [(Int,[Int])] -> IM.IntMap [Int]
+--buildArray = IM.map listSetFromList . IM.fromListWith (++)
+
+buildArray2 :: [(Int,Int)] -> IM.IntMap [Int]
+buildArray2 = IM.fromList . listMapFromList

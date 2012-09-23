@@ -72,6 +72,9 @@ deletion2 bs =  test . mapAccumL f (Just bs)
 allInsertions :: Int -> [Bool] -> [[Bool]]
 allInsertions s bs = map (insertion2 bs) (atMostSOnes (length bs + s) s)
 
+allInsertionFns :: Int -> Int -> [[Bool] -> [Bool]]
+allInsertionFns n s = map (flip insertion2) (atMostSOnes n s)
+
 allDeletions :: Int -> [Bool] -> [[Bool]]
 allDeletions s bs = mapMaybe (deletion2 bs) (atMostSOnes (length bs - s) s)
 
