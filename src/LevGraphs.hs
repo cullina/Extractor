@@ -15,8 +15,8 @@ levEdges s = organizeEdges . mergeCliques . basicCliques s
 testLevColoring :: (Ord a, Eq a) => ([Bool] -> a) -> Int -> Int -> [(([Bool], a), ([Bool], a))]
 testLevColoring f s = filter (uncurry (==) . mapPair snd) . fromUnEdgeList . mergeCliques . fmap (keepArg f) . basicCliques s
 
-levIntArrayGraph :: Int -> Int -> ArrayGraph
-levIntArrayGraph s = arrayGraphFromCliques . fmap bitsToInt . basicCliques s
+levIntGraph :: Int -> Int -> FullAdj Int
+levIntGraph s = fromCliques . fmap bitsToInt . basicCliques s
 
 levIntEdges :: Int -> Int -> EdgeList Int
 levIntEdges s = organizeEdges . levIntUEdges s
