@@ -4,6 +4,7 @@ import Graph(ArrayGraph(..), Subgraph(..))
 import Data.IntMap(IntMap,(!))
 import Data.IntSet(IntSet, member, delete)
 import Data.List(foldl')
+import Util(mapFst)
 
 remainingNeighbors :: IntMap [Int] -> IntSet -> Int -> [Int] 
 remainingNeighbors graph vs = filter (flip member vs) . (graph !)
@@ -50,5 +51,26 @@ greedyIndSets :: ArrayGraph -> [[Int]]
 greedyIndSets (ArrayGraph graph sg) = gis sg
   where
     f sg x = map (x :) (gis (updateSubgraph graph sg x))
-    gis (Subgraph _ []) = [[]]
-    gis sg@(Subgraph _ ds) = concatMap (f sg) $ minDegs ds
+    gis (Subgraph _ ds) =     
+      case minDegs ds of
+        [] -> [[]]
+        xs -> concatMap (f sg) xs
+
+greedyIndSetN :: Int -> ArrayGraph -> ([Int],Int)
+greedyIndSetN n (ArrayGraph graph sg) = gis n sg
+  where
+    gis n sg@(Subgraph _ ds) =
+      case minDegs ds of
+        [] -> ([],n)
+        xs -> let (x, newN) = rListElem xs n
+              in mapFst (x :) (gis newN (updateSubgraph graph sg x))
+
+greedyIndSetFirstN :: Int -> ArrayGraph -> [[Int]]
+greedyIndSetFirstN n g = map fst . filter ((0 ==) . snd) $ map (flip greedyIndSetN g) [0..n-1]
+
+
+
+rListElem :: [a] -> Int -> (a,Int)
+rListElem xs n =
+  let (q,r) = quotRem n (length xs)
+  in (xs !! r, q)
