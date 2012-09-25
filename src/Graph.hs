@@ -1,25 +1,36 @@
 module Graph where
 
-import Data.List(sort, sortBy)
+import Data.List(sort, sortBy)--, foldl')
 import Data.Array(Array, listArray, (!), range, bounds)
+import qualified Data.IntMap.Strict as IM
+import Data.IntSet(IntSet)
 import Data.Function(on)
 import Data.Set(Set, member)
 import Util(andTest, mapFst, mapSnd, mapPair, toStandardInt)
-import ListSet
+import StrictLists
+import ListSet(intersect,asymDiff)
 
 newtype UnEdgeList a  = UnEdgeList [(a,a)] deriving Show
 newtype EdgeList a    = EdgeList [(a,a)] deriving Show
-newtype DirEdgeList a = DirEdgeList [(a,a)] deriving Show
 newtype FullAdj a     = FullAdj [(a,[a])] deriving Show
+newtype FullAdjS a    = FullAdjS (SL (SP a (SL a)))
 newtype FwdAdj a      = FwdAdj [(a,[a])] deriving Show
+newtype CliqueList a  = CliqueList [[a]] deriving Show
 data ContigEdgeList = CEdgeList Int (EdgeList Int)
+
+data ArrayGraph = ArrayGraph (IM.IntMap [Int]) Subgraph
+data Subgraph = Subgraph IntSet [(Int,Int)]
 
 fromUnEdgeList  (UnEdgeList x)  = x
 fromEdgeList    (EdgeList x)    = x
-fromDirEdgeList (DirEdgeList x) = x
 fromFullAdj     (FullAdj x)     = x
+fromFullAdjS    (FullAdjS x)    = x
 fromFwdAdj      (FwdAdj x)      = x
 fromCEdgeList   (CEdgeList _ x) = x
+fromCliqueList  (CliqueList x)  = x
+
+instance Functor CliqueList where
+  fmap f (CliqueList x) = CliqueList (map (map f) x)
 
 
 organizeEdges :: Ord a => UnEdgeList a -> EdgeList a
@@ -52,41 +63,17 @@ deleteVertexEL x = EdgeList . filter (f x) . fromEdgeList
 adjList :: (Ord a, Eq a) => EdgeList a -> FwdAdj a
 adjList = removeBackLinks . adjListFull
 
-adjListFull2 :: (Ord a, Eq a) => EdgeList a -> FullAdj a
-adjListFull2 = FullAdj . groupByFst . sort . fromDirEdgeList . addReverses
-
 sortByDegree :: (Ord a, Eq a) => FullAdj a -> FullAdj Int
 sortByDegree (FullAdj xs) =  
   let list = map fst $ sortBy (flip (compare `on` (length . snd))) xs
   in FullAdj $ relabelGraph (toStandardInt list) xs
-     
+
 adjListByDeg :: (Ord a, Eq a) => EdgeList a -> FwdAdj Int
 adjListByDeg = removeBackLinks . sortByDegree . adjListFull
 
 relabelGraph :: (Ord b, Eq b) => (a -> b) -> [(a,[a])] -> [(b,[b])]
 relabelGraph f = sort . map (mapFst f . mapSnd (sort . map f)) 
 
-
-addReverses :: EdgeList a -> DirEdgeList a
-addReverses (EdgeList es) = DirEdgeList $ concatMap f es
-  where
-    f (x,y) = [(x,y),(y,x)]
-
-removeBackLinks :: Ord a => FullAdj a -> FwdAdj a
-removeBackLinks = FwdAdj . map f . fromFullAdj
-  where
-    f (x, ys) = (x, filter (x <) ys)
-
-groupByFst :: Eq a => [(a,a)] -> [(a,[a])]
-groupByFst [] = []
-groupByFst ((x,y):es) = 
-  let (as, bs) = span ((x ==) . fst) es
-  in (x, y : map snd as) : groupByFst bs
-                      
-edgeList :: FwdAdj a -> EdgeList a
-edgeList (FwdAdj xs) = EdgeList $ concatMap f xs
-  where 
-    f (x, ys) = map ((,) x) ys
 
 vertexList :: Ord a => EdgeList a -> [a]
 vertexList = listSetFromList . concatMap f . fromEdgeList
@@ -133,8 +120,6 @@ withinN es 1 v = es ! v
 withinN es n v = 
   let vs = es ! v
   in vs ++ concatMap (withinN es (n-1)) vs
-    
-  
 
 matrixSquare :: Ord a => FullAdj a -> EdgeList a
 matrixSquare = EdgeList . map fst . filter (uncurry intersect . snd) . map transposePairs . allPairs . fromFullAdj
@@ -147,3 +132,56 @@ allPairs (x:xs) = map ((,) x) xs ++ allPairs xs
 complement :: (Eq a, Ord a) => EdgeList a -> EdgeList a
 complement es = EdgeList $ asymDiff (allPairs (vertexList es)) (sort (fromEdgeList es))
 
+----------------------------------------------------
+
+complete :: Ord a => [a] -> FullAdjS a
+complete vs = 
+  let newVs = listSetFromListS $ fromList vs
+      f :: Ord a => a -> SL a -> SP a (SL a)
+      f x ys = SP x (deleteS x ys) 
+  in FullAdjS $ mapS (flip f newVs) newVs
+
+cliqueList :: Ord a => CliqueList a -> [FullAdjS a]
+cliqueList = map complete . fromCliqueList
+
+addReverses :: UnEdgeList a -> [FullAdjS a]
+addReverses = map f . fromUnEdgeList
+  where
+    f (x,y) = FullAdjS . SCons (g x y) $ SCons (g y x) SNil
+    g x y   = SP x (SCons y SNil)
+
+graphUnion :: Ord a => [FullAdjS a] -> FullAdjS a
+graphUnion = FullAdjS . listMapUnion . fromList . map fromFullAdjS
+
+
+--------
+--Graph Transformations
+
+removeBackLinks :: Ord a => FullAdj a -> FwdAdj a
+removeBackLinks = FwdAdj . map f . fromFullAdj
+  where
+    f (x, ys) = (x, filter (x <) ys)
+                      
+edgeList :: FwdAdj a -> EdgeList a
+edgeList (FwdAdj xs) = EdgeList $ concatMap f xs
+  where 
+    f (x, ys) = zip (repeat x) ys
+
+unstrict :: FullAdjS a -> FullAdj a
+unstrict = FullAdj . map fromS . fromSL . fromFullAdjS 
+
+unorder :: EdgeList a -> UnEdgeList a
+unorder = UnEdgeList . fromEdgeList
+
+arrayGraph :: FullAdj Int -> ArrayGraph
+arrayGraph xs =
+  let g = IM.fromList (fromFullAdj xs) :: IM.IntMap [Int]
+      ds = map (mapSnd length) $ IM.assocs g
+      vs = IM.keysSet g
+  in ArrayGraph g (Subgraph vs ds)
+     
+fromEdges :: Ord a => UnEdgeList a -> FullAdj a
+fromEdges = unstrict . graphUnion . addReverses
+
+fromCliques :: Ord a => CliqueList a -> FullAdj a
+fromCliques = unstrict . graphUnion . cliqueList

@@ -34,8 +34,8 @@ asymDiff = (map snd . filter ((LT ==) . fst)) ... merge
 contains :: Ord a => [a] -> [a] -> Bool
 contains = null ... flip asymDiff
 
-listSetFromList :: Ord a => [a] -> [a]
-listSetFromList = runs . sort
+listSetFromList2 :: Ord a => [a] -> [a]
+listSetFromList2 = runs . sort
   where 
     runs []  = []
     runs [x] = [x] 
@@ -53,3 +53,24 @@ fastHist = h . sort
     g (x,n) (y:ys)
       | x == y    = g (x, n+1) ys
       | otherwise = (x,n) : g (y,1) ys
+
+listSetFromList :: Ord a => [a] -> [a]
+listSetFromList = mergeAll mergeSets . map return
+                   
+mergeAll :: ([a] -> [a] -> [a]) -> [[a]] -> [a]
+mergeAll _     []  = []
+mergeAll _     [x] = x
+mergeAll merge xs  = mergeAll merge (mergePairs merge xs)
+    
+mergePairs :: ([a] -> [a] -> [a]) -> [[a]] -> [[a]]
+mergePairs merge (x : y : zs) = merge x y : mergePairs merge zs
+mergePairs _     zs           = zs
+
+mergeSets :: Ord a => [a] -> [a] -> [a]
+mergeSets xx@(x:xs) yy@(y:ys) = 
+  case compare x y of 
+    EQ -> x : mergeSets xs ys
+    LT -> x : mergeSets xs yy
+    GT -> y : mergeSets xx ys
+mergeSets xx [] = xx
+mergeSets [] yy = yy
