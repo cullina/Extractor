@@ -87,6 +87,8 @@ allIndepSets = foldrM f [] . fromFwdAdj
       then [is]
       else [u:is, is]      
       
+allBigIndepSets :: Ord a => Int -> FwdAdj a -> [[a]]
+allBigIndepSets l = filter ((>= l) . length) . allIndepSets 
 
 greedyIndepSet :: Ord a => FwdAdj a -> [a]
 greedyIndepSet = head . maxIndepSets
