@@ -64,6 +64,11 @@ Executable color
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
+Executable colortwo
+  Main-is: ColorTwoMain.hs
+  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  hs-source-dirs:  src
+
 Executable exact
   Main-is: ExactMain.hs
   ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all

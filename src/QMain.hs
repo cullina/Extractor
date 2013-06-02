@@ -4,7 +4,6 @@ import Graph
 import QaryGraphs(qLevelIntEdges)
 import GraphAlgorithms(allBigIndepSets)
 import System.Environment(getArgs)
-import Simplex
 
 main = getArgs >>= f
 
@@ -13,5 +12,5 @@ f [a,b,c,l] = test (read l) . adjListFull . qLevelIntEdges $ [read a, read b, re
 f _ = error "Need 3 args."
   
 
-test l = mapM_ print . solve . packingInstance . allBigIndepSets l . removeBackLinks
+test l = mapM_ print . allBigIndepSets l . removeBackLinks
 

@@ -83,7 +83,7 @@ allIndepSets = foldrM f [] . fromFwdAdj
   where
     f :: Ord a => (a, [a]) -> [a] -> [[a]]
     f (u, vs) is = 
-      if vs `intersect` is
+      if vs `intersect` (u:is)
       then [is]
       else [u:is, is]      
       
@@ -97,3 +97,28 @@ greedyClique :: Ord a => FwdAdj a -> [a]
 greedyClique = head . maxCliques
 --------------------
 
+
+allColorings :: Ord a => Int -> FwdAdj a -> [[[a]]]
+allColorings k = foldrM f [] . fromFwdAdj
+  where
+    f :: Ord a => (a, [a]) -> [[a]] -> [[[a]]]
+    f (u, vs) colorClasses =
+      let cc = partialMap (tryColor u vs) colorClasses
+      in if k > length colorClasses
+         then ([u]:colorClasses) : cc
+         else cc
+      
+    tryColor :: Ord a => a -> [a] -> [a] -> Maybe [a]
+    tryColor u vs cs =
+      if vs `intersect` cs
+      then Nothing
+      else Just (u:cs)
+
+    partialMap :: (b -> Maybe b) -> [b] -> [[b]]
+    partialMap _ [] = []
+    partialMap f (x:xs) = 
+      let rest = map (x :) (partialMap f xs)
+      in case f x of 
+        Nothing -> rest
+        Just y -> (y : xs) : rest
+  
