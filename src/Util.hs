@@ -125,3 +125,6 @@ group (x:xs) = toList $ foldr g ((x,[]),[]) xs
                     
 toStandardInt :: Eq a => [a] -> a -> Int                    
 toStandardInt xs = (1 +) . fromJust . flip elemIndex xs
+
+incrementalLength :: [a] -> IO [()]
+incrementalLength = mapM (print . fst) . zip [1..]

@@ -4,11 +4,11 @@ import System.Environment(getArgs)
 import Color
 import QaryGraphs
 import Graph(adjList)
-
+import Util(incrementalLength)
 
 main = do
   [q,n,k] <- fmap (map read) getArgs
 --  mapM_ (print . colorClasses) . color k . adjList $ qIntEdges q n
-  mapM_ (print . (\_ -> ())) . color k . adjList $ qIntEdges q n
+  incrementalLength . color k . adjList $ qIntEdges q n
 
 

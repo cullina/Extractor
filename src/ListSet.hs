@@ -7,6 +7,14 @@ removeSubsets :: Ord a => [[a]] -> [[a]]
 removeSubsets [] = []
 removeSubsets (x:xs) = x : removeSubsets (filter (not . contains x) xs)
 
+add :: Ord a => a -> [a] -> [a]
+add x [] = [x]
+add x (y:ys) = 
+  case compare x y of
+    LT -> x : y : ys
+    EQ -> y : ys
+    GT -> y : add x ys
+
 merge :: Ord a => [a] -> [a] -> [(Ordering, a)]
 merge [] ys         = map ((,) GT) ys
 merge xs []         = map ((,) LT) xs
@@ -74,3 +82,22 @@ mergeSets xx@(x:xs) yy@(y:ys) =
     GT -> y : mergeSets xx ys
 mergeSets xx [] = xx
 mergeSets [] yy = yy
+
+----------------------
+--ListMap
+
+mapSubset :: Ord a => (b -> b) -> [a] -> [(a,b)] -> [(a,b)]
+mapSubset _ _  [] = []
+mapSubset f xs (y:ys) = 
+  y' : mapSubset f xs' ys
+  where
+    (xs', y') = g xs y
+    
+    g []     (y, z) = ([], (y, z))
+    g (x:xs) (y, z) = 
+      case compare x y of
+        LT -> g xs (y, z)
+        EQ -> (xs, (y, f z))
+        GT -> (x:xs, (y, z))
+
+  

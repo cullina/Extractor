@@ -2,7 +2,7 @@ module GraphAlgorithms where
 
 import Graph
 import Util(mapFst, mapSnd)
-import ListSet(contains, intersect)       
+import ListSet(add, contains, intersect, asymDiff, mapSubset)       
 import Data.Foldable(foldrM)
 
 removeNeighbors :: Ord a => [a] -> [(a,[a])] -> [(a,[a])]
@@ -122,3 +122,40 @@ allColorings k = foldrM f [] . fromFwdAdj
         Nothing -> rest
         Just y -> (y : xs) : rest
   
+--list coloring approach
+data LColoring a = LC 
+                   { numUsed :: Int 
+                   , coloring :: [(a,Int)] 
+                   , forbidden :: [(a,([Int],[a]))]
+                   }
+        
+allColoringsL :: Ord a => Int -> FullAdj a -> [[(a,Int)]]
+allColoringsL k = f . LC 0 [] . map (\(x,y) -> (x,([],y))) . fromFullAdj
+  where 
+    maxColor = k - 1
+--    f :: Ord a => LColoring a -> [[(a,Int)]]
+    f cc = 
+      case extractMax (length . fst . snd) $ forbidden cc of
+        Nothing            -> [coloring cc]
+        Just ((x,(fcs,ns)),_,xs) -> 
+          concatMap (f . colorVertex cc x xs ns) $ availableColors (numUsed cc) fcs
+          
+    availableColors :: Int -> [Int] -> [Int]
+    availableColors used forbiddenColors = asymDiff [0 .. (min used maxColor)] forbiddenColors
+        
+    colorVertex :: Ord a => LColoring a -> a -> [(a,([Int],[a]))] -> [a] -> Int -> LColoring a
+    colorVertex (LC used cvs _) x xs ys c = 
+      LC (max used (c+1)) ((x,c):cvs) (mapSubset (mapFst (add c)) ys xs)
+
+
+extractMax :: Ord c => (a -> c) -> [a] -> Maybe (a, c, [a])
+extractMax _ [] = Nothing
+extractMax f (x:xs) = 
+  let u = f x
+  in case extractMax f xs of
+    Nothing       -> Just (x, u, xs)
+    Just (y,v,ys) ->
+      if u > v
+      then Just (x, u, xs)
+      else Just (y, v, x:ys) 
+

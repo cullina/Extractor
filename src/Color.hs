@@ -7,9 +7,9 @@ import Data.Maybe(catMaybes)
 import ListSet(listSetFromList, asymDiff)
 
 data Coloring = Coloring 
-    { numUsed  :: Int
-    , coloring :: IM.IntMap Int
-    } deriving Show
+                { numUsed  :: Int
+                , coloring :: IM.IntMap Int
+                } deriving Show
   
 
 emptyColoring :: Coloring
