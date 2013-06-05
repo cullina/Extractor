@@ -46,47 +46,37 @@ Cabal-version:       >=1.2
 
 Executable graph
   Main-is: Main.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable qindep
   Main-is: QMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable degree
   Main-is: DegreeMain.hs   
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable color
   Main-is: ColorMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
-  hs-source-dirs:  src
-
-Executable colortwo
-  Main-is: ColorTwoMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
-  hs-source-dirs:  src
-
-Executable colorthree
-  Main-is: ColorThreeMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable exact
   Main-is: ExactMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable stats
   Main-is: StatsMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 Executable greedy
   Main-is: GreedyMain.hs
-  ghc-options:    -W -Werror -fwarn-tabs -O2 -rtsopts -auto-all
+  ghc-options:    -W -fwarn-tabs -O2 -rtsopts -auto-all
   hs-source-dirs:  src
 
 
